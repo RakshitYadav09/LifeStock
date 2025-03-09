@@ -50,8 +50,10 @@ const LearnMoreContainer = styled.div`
   position: relative;
   justify-content: center;
   align-items: center;
-  padding-top: 40px;
+  padding: 40px 16px;
   animation: ${fadeIn} 1s ease-out forwards;
+  box-sizing: border-box;
+  overflow-x: hidden;
 `;
 
 const ContentContainer = styled.div`
@@ -61,10 +63,11 @@ const ContentContainer = styled.div`
   align-items: center;
   width: 100%;
   max-width: 1200px;
-  padding: 32px;
+  padding: 16px;
   
   @media (min-width: 768px) {
     flex-direction: row;
+    padding: 32px;
   }
 `;
 
@@ -76,6 +79,7 @@ const LeftSection = styled.div`
   justify-content: center;
   margin-bottom: 40px;
   text-align: center;
+  width: 100%;
   
   @media (min-width: 768px) {
     margin-bottom: 0;
@@ -86,20 +90,41 @@ const LeftSection = styled.div`
 `;
 
 const LogoImage = styled.img`
-  width: 500px;
+  width: 100%;
+  max-width: 350px;
   height: auto;
   margin-bottom: 24px;
   animation: ${scaleIn} 0.8s ease-out 0.2s both;
   opacity: 0;
+  
+  @media (min-width: 480px) {
+    max-width: 400px;
+  }
+  
+  @media (min-width: 768px) {
+    max-width: 450px;
+  }
+  
+  @media (min-width: 992px) {
+    max-width: 500px;
+  }
 `;
 
 const Subtitle = styled.p`
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: #1d4d4f;
   margin-bottom: 32px;
   max-width: 500px;
   ${animationMixin(0.5)};
+  
+  @media (min-width: 480px) {
+    font-size: 1.1rem;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const GetStartedButton = styled.button`
@@ -114,6 +139,13 @@ const GetStartedButton = styled.button`
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px rgba(29, 77, 79, 0.1);
   ${animationMixin(0.7)};
+  width: 100%;
+  max-width: 300px;
+  
+  @media (min-width: 768px) {
+    width: auto;
+    max-width: none;
+  }
   
   &:hover {
     background-color: #163638;
@@ -133,11 +165,18 @@ const RightSection = styled.div`
   gap: 24px;
   justify-items: center;
   justify-content: center;
+  width: 100%;
+  
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
   
   @media (min-width: 768px) {
     grid-template-columns: 1fr 1fr;
-    gap: 24px 32px;
+    gap: 50px 32px;  /* Increased vertical gap for better staggering effect */
     align-items: start;
+    margin-top: 30px; /* Add top margin to create vertical space for staggering */
   }
 `;
 
@@ -145,15 +184,20 @@ const FeatureCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 28px 24px;
+  padding: 24px 16px;
   background-color: #e0f7f0;
   border-radius: 12px;
   width: 100%;
-  max-width: 280px;
+  max-width: 100%;
   box-shadow: 0 8px 20px rgba(29, 77, 79, 0.08);
   transition: all 0.3s ease;
   border: 1px solid rgba(29, 77, 79, 0.05);
   opacity: 0;
+  
+  @media (min-width: 480px) {
+    padding: 28px 20px;
+    max-width: 280px;
+  }
   
   &:hover {
     transform: translateY(-6px) !important;
@@ -180,23 +224,30 @@ const FeatureIcon = styled.div`
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #1d4d4f;
   margin-bottom: 12px;
   text-align: center;
+  
+  @media (min-width: 480px) {
+    font-size: 1.4rem;
+  }
 `;
 
 const FeatureDescription = styled.p`
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   color: #1d4d4f;
   text-align: center;
+  
+  @media (min-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 // Create a custom component for each feature card with proper animation
 const StaggeredFeatureCard = ({ icon, title, description, translateY, animationDelay }) => {
-  // Using inline styles to apply animations instead of injecting via styled-components
   const [animationStyle, setAnimationStyle] = useState({
     transform: `translateY(${translateY}px)`,
     opacity: 0
@@ -205,7 +256,7 @@ const StaggeredFeatureCard = ({ icon, title, description, translateY, animationD
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationStyle({
-        transform: `translateY(${translateY}px)`,
+        transform: window.innerWidth >= 768 ? `translateY(${translateY}px)` : 'translateY(0)',
         opacity: 1,
         transition: `opacity 0.8s ease-out, transform 0.8s ease-out`
       });
@@ -229,10 +280,21 @@ const StaggeredFeatureCard = ({ icon, title, description, translateY, animationD
 
 const LearnMorePage = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   
   useEffect(() => {
     setIsLoaded(true);
+    
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // More pronounced staggering effect for desktop
+  const staggerOffset = 40; // Increased offset for better visual distinction
   
   return (
     <LearnMoreContainer style={{ opacity: isLoaded ? 1 : 0 }}>
@@ -242,41 +304,41 @@ const LearnMorePage = () => {
           <Subtitle>
             Transform your kitchen with LifeStock, where AI turns your receipts into smart shopping plans and perfect recipes. Welcome to effortless grocery management.
           </Subtitle>
-          <Link to="/signup" style={{ textDecoration: 'none' }}>
+          <Link to="/signup" style={{ textDecoration: 'none', width: windowWidth < 768 ? '100%' : 'auto' }}>
             <GetStartedButton>Get Started Now</GetStartedButton>
           </Link>
         </LeftSection>
         
         <RightSection>
           <StaggeredFeatureCard 
-            icon={<Film size={32} />}
+            icon={<Film size={24} />}
             title="Smart Inventory"
             description="Automatically track and organize your kitchen supplies with AI-powered receipt scanning and intelligent inventory management."
-            translateY={-30}
+            translateY={-staggerOffset}
             animationDelay={0.9}
           />
           
           <StaggeredFeatureCard 
-            icon={<Film size={32} />}
+            icon={<Film size={24} />}
             title="Recipe Suggestions"
             description="Get personalized recipe recommendations based on what you already have in your kitchen to reduce food waste."
-            translateY={30}
+            translateY={staggerOffset}
             animationDelay={1.1}
           />
           
           <StaggeredFeatureCard 
-            icon={<Film size={32} />}
+            icon={<Film size={24} />}
             title="Shopping Lists"
             description="Create smart shopping lists that optimize your grocery runs and ensure you never forget essential items again."
-            translateY={-30}
+            translateY={-staggerOffset}
             animationDelay={1.3}
           />
           
           <StaggeredFeatureCard 
-            icon={<Film size={32} />}
+            icon={<Film size={24} />}
             title="Budget Tracking"
             description="Monitor your grocery spending with detailed insights and suggestions to help you save money while eating better."
-            translateY={30}
+            translateY={staggerOffset}
             animationDelay={1.5}
           />
         </RightSection>
