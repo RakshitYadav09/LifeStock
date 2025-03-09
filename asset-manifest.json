@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/LifeStock/static/css/main.59c3a457.css",
+    "main.js": "/LifeStock/static/js/main.86d7d62a.js",
+    "static/js/453.b4617d9d.chunk.js": "/LifeStock/static/js/453.b4617d9d.chunk.js",
+    "static/media/png": "/LifeStock/static/media/434508aba04beb9ef9b9c394f29e04f1.76c1ea3b6659d15c866a.png",
+    "static/media/LifeStockDark.svg": "/LifeStock/static/media/LifeStockDark.215d1e8c5d4ec0814e756e43b79034f1.svg",
+    "static/media/LifeStock.svg": "/LifeStock/static/media/LifeStock.1bd8790a70c0b1e7d5f8bf411a71fb23.svg",
+    "index.html": "/LifeStock/index.html",
+    "main.59c3a457.css.map": "/LifeStock/static/css/main.59c3a457.css.map",
+    "main.86d7d62a.js.map": "/LifeStock/static/js/main.86d7d62a.js.map",
+    "453.b4617d9d.chunk.js.map": "/LifeStock/static/js/453.b4617d9d.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.59c3a457.css",
+    "static/js/main.86d7d62a.js"
+  ]
+}
