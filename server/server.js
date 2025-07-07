@@ -42,8 +42,13 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://your-frontend-app.vercel.app', // Update this when you deploy
+      process.env.CLIENT_URL, // This will be your Vercel frontend URL
     ];
+    
+    // In development, allow all localhost origins
+    if (process.env.NODE_ENV === 'development' && origin && origin.includes('localhost')) {
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -68,7 +73,22 @@ app.use('/api/notifications', notificationRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'Task Management API is running!' });
+  res.json({ 
+    message: 'LifeStock Task Management API is running!',
+    status: 'healthy',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
 });
 
 // Socket.IO connection handling
