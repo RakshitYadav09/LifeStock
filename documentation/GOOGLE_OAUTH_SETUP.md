@@ -1,7 +1,7 @@
 # Google OAuth Setup Guide
 
 ## Overview
-This guide will help you set up Google OAuth authentication for your TaskFlow application, making it more secure by replacing localStorage-based authentication with Google's OAuth system.
+This guide will help you set up Google OAuth authentication for your LifeStock application, making it more secure by replacing localStorage-based authentication with Google's OAuth system.
 
 ## What's Been Added
 

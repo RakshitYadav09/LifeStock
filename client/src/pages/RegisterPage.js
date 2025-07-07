@@ -36,13 +36,24 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+        {/* Logo and Brand */}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="w-20 h-20 flex items-center justify-center mx-auto mb-4">
+            <img 
+              src="/lifestock_logo.svg" 
+              alt="LifeStock Logo" 
+              className="w-20 h-20 object-contain"
+            />
+          </div>
+          <h2 className="text-3xl font-display font-bold text-neutral-800 mb-2">
+            Join LifeStock
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="text-neutral-600 mb-4">
+            Create your account to start organizing your life
+          </p>
+          <p className="text-sm text-gray-600">
             Or{' '}
             <Link
               to="/login"

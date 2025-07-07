@@ -81,8 +81,12 @@ const NavigationBar = () => {
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-medium group-hover:shadow-large transition-all duration-300">
-                <span className="text-white text-xl font-bold">LS</span>
+              <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                <img 
+                  src="/lifestock_logo.svg" 
+                  alt="LifeStock Logo" 
+                  className="w-10 h-10 object-contain"
+                />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-display font-bold text-neutral-800 group-hover:text-primary-600 transition-colors">

@@ -29,7 +29,7 @@ const LoginPage = () => {
             <span className="text-white text-3xl font-bold">T</span>
           </div>
           <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">
-            Welcome to TaskFlow
+            Welcome to LifeStock
           </h1>
           <p className="text-neutral-600">
             Sign in to collaborate and organize your tasks

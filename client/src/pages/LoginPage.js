@@ -27,11 +27,15 @@ const LoginPage = () => {
       <div className="max-w-md w-full">
         {/* Logo and Brand */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-3xl flex items-center justify-center shadow-large mx-auto mb-4">
-            <span className="text-white text-3xl font-bold">T</span>
+          <div className="w-20 h-20 flex items-center justify-center mx-auto mb-4">
+            <img 
+              src="/lifestock_logo.svg" 
+              alt="LifeStock Logo" 
+              className="w-20 h-20 object-contain"
+            />
           </div>
           <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">
-            Welcome to TaskFlow
+            Welcome to LifeStock
           </h1>
           <p className="text-neutral-600">
             Sign in to collaborate and organize your tasks

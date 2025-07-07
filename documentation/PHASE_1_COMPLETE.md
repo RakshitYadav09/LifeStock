@@ -12,7 +12,7 @@
 - **Shadow System**: Soft, medium, large shadow utilities
 
 #### **Global Navigation Bar**
-- **Brand Identity**: "TaskFlow" logo with gradient design
+- **Brand Identity**: "LifeStock" logo with gradient design
 - **Smart Navigation**: Context-aware active states
 - **Notification Bell**: Live unread count with animations
 - **Friend Badges**: Dynamic request count indicators
