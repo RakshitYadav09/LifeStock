@@ -1,0 +1,31 @@
+# Git Repository Setup Commands
+
+# 1. Initialize Git repository in the root tasks/ directory
+cd c:\code\tasks
+git init
+
+# 2. Add all files to staging area
+git add .
+
+# 3. Create initial commit
+git commit -m "Initial commit: LifeStock MERN stack application ready for deployment"
+
+# 4. Create main branch (if not already)
+git branch -M main
+
+# 5. Add remote repository (replace YOUR_USERNAME with your GitHub username)
+git remote add origin https://github.com/YOUR_USERNAME/lifestock-app.git
+
+# 6. Push to GitHub
+git push -u origin main
+
+# Note: When prompted for credentials, use:
+# Username: Your GitHub username
+# Password: Your Personal Access Token (NOT your GitHub password)
+
+# How to Generate Personal Access Token (PAT):
+# 1. Go to GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)
+# 2. Click "Generate new token"
+# 3. Select scopes: repo, workflow, write:packages, delete:packages
+# 4. Copy the token immediately (you won't see it again)
+# 5. Use this token as your password when pushing to GitHub
