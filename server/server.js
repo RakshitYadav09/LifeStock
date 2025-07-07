@@ -21,7 +21,7 @@ const server = http.createServer(app);
 // Setup Socket.IO with CORS
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://life-stock-planner.vercel.app"],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -42,11 +42,17 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
+      'https://life-stock-planner.vercel.app',
       process.env.CLIENT_URL, // This will be your Vercel frontend URL
     ];
     
     // In development, allow all localhost origins
     if (process.env.NODE_ENV === 'development' && origin && origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    // Temporarily allow all Vercel domains for testing
+    if (origin && origin.includes('.vercel.app')) {
       return callback(null, true);
     }
     
