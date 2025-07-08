@@ -40,7 +40,11 @@ const RegisterPage = () => {
       <div className="max-w-md w-full">
         {/* Logo and Brand */}
         <div className="text-center mb-6 animate-fade-in">
-          <img src="/lifestock_logo.svg" alt="LifeStock Logo" className="w-16 h-16 mx-auto mb-3" />
+          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xl">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-2">
             Join LifeStock
           </h1>
@@ -88,7 +92,7 @@ const RegisterPage = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 bg-neutral-50 focus:bg-white"
-                  placeholder="Choose a username"
+                  placeholder="Enter your username"
                 />
               </div>
 
@@ -137,7 +141,7 @@ const RegisterPage = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 bg-neutral-50 focus:bg-white"
-                  placeholder="Confirm your password"
+                  placeholder="Re-enter your password"
                 />
               </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Check, Tag, Calendar, AlertCircle, Filter, Search } from 'lucide-react';
+import { Trash2, Check, Tag, Calendar, AlertCircle, Filter } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 
@@ -111,13 +111,12 @@ const TaskList = ({ refreshTrigger }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-neutral-50 rounded-xl">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <input
             type="text"
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+            className="w-full pl-4 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
           />
         </div>
 
@@ -257,7 +256,7 @@ const TaskList = ({ refreshTrigger }) => {
       {filteredTasks.length === 0 && tasks.length > 0 && (
         <div className="text-center py-8">
           <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-neutral-400" />
+            {/* <Search className="w-8 h-8 text-neutral-400" /> */}
           </div>
           <h3 className="text-lg font-display font-semibold text-neutral-800 mb-2">No matching tasks</h3>
           <p className="text-neutral-600">Try adjusting your search or filters</p>

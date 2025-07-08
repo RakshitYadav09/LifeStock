@@ -264,8 +264,7 @@ const GlobalSearch = ({ isOpen, onClose }) => {
       <div className="bg-white rounded-2xl shadow-large border border-primary-100 w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col animate-scale-in">
         {/* Header */}
         <div className="flex items-center space-x-4 p-6 border-b border-primary-100">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+          <div className="flex-1">
             <input
               ref={searchInputRef}
               type="text"
@@ -273,7 +272,7 @@ const GlobalSearch = ({ isOpen, onClose }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full pl-12 pr-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
             />
           </div>
           <button
