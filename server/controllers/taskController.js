@@ -1,5 +1,7 @@
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
+const User = require('../models/User');
+const emailService = require('../utils/emailService');
 
 // Get all tasks for a user (including shared tasks)
 const getTasks = async (req, res) => {
@@ -240,8 +242,48 @@ const shareTask = async (req, res) => {
     task.isShared = task.sharedWith.length > 0;
 
     await task.save();
-    await task.populate('user', 'username email');
-    await task.populate('sharedWith', 'username email');
+    await task.populate('user', 'username email name');
+    await task.populate('sharedWith', 'username email name');
+
+    // Send email notifications to newly shared users
+    for (const userId of newSharedUsers) {
+      try {
+        const sharedUser = await User.findById(userId);
+        if (sharedUser && sharedUser.email) {
+          // Create custom email for task sharing
+          const emailContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://yourdomain.com/lifestock_logo.svg" alt="LifeStock Logo" style="max-width: 150px;" />
+              </div>
+              <h2 style="color: #4F46E5;">Task Shared With You</h2>
+              <p>Hello ${sharedUser.name || sharedUser.username},</p>
+              <p>${task.user.name || task.user.username} has shared a task with you:</p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">${task.title}</h3>
+                <p><strong>Due Date:</strong> ${task.dueDate ? new Date(task.dueDate).toLocaleString() : 'No due date'}</p>
+                <p><strong>Description:</strong> ${task.description || 'No description provided'}</p>
+                <p><strong>Priority:</strong> ${task.priority || 'Normal'}</p>
+              </div>
+              <div style="margin-top: 30px; text-align: center;">
+                <a href="${process.env.CLIENT_URL}/tasks/${task._id}" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Task</a>
+              </div>
+            </div>
+          `;
+          
+          await emailService.sendEmail(
+            sharedUser.email,
+            `${task.user.username} shared a task with you: ${task.title}`,
+            emailContent
+          );
+          
+          console.log(`Task share notification sent to ${sharedUser.email}`);
+        }
+      } catch (emailError) {
+        console.error(`Failed to send task share notification to user ${userId}:`, emailError);
+        // Continue with other notifications even if one fails
+      }
+    }
 
     res.json({
       message: 'Task shared successfully',

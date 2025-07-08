@@ -2,6 +2,8 @@ const cron = require('node-cron');
 const Task = require('../models/Task');
 const SharedList = require('../models/SharedList');
 const CalendarEvent = require('../models/CalendarEvent');
+const User = require('../models/User');
+const emailService = require('./emailService');
 
 let io = null;
 
@@ -46,8 +48,8 @@ const checkTaskReminders = async () => {
         $lt: dayAfterTomorrow
       },
       completed: false
-    }).populate('user', 'username email')
-      .populate('sharedWith', 'username email');
+    }).populate('user', 'username email name')
+      .populate('sharedWith', 'username email name');
 
     for (const task of upcomingTasks) {
       // Send reminder to task owner
@@ -61,6 +63,9 @@ const checkTaskReminders = async () => {
       if (io) {
         io.to(`user-${task.user._id.toString()}`).emit('reminder', ownerReminder);
       }
+      
+      // Send email reminder to task owner
+      await emailService.sendTaskReminder(task.user, task);
 
       // Send reminder to shared users
       if (task.sharedWith && task.sharedWith.length > 0) {
@@ -76,6 +81,9 @@ const checkTaskReminders = async () => {
           if (io) {
             io.to(`user-${sharedUser._id.toString()}`).emit('reminder', sharedReminder);
           }
+          
+          // Send email reminder to shared users
+          await emailService.sendTaskReminder(sharedUser, task);
         }
       }
 
@@ -103,8 +111,8 @@ const checkListItemReminders = async () => {
         $lt: dayAfterTomorrow
       },
       'items.completed': false
-    }).populate('creator', 'username email')
-      .populate('collaborators', 'username email');
+    }).populate('creator', 'username email name')
+      .populate('collaborators', 'username email name');
 
     for (const list of listsWithDueItems) {
       const dueItems = list.items.filter(item => 
@@ -126,12 +134,28 @@ const checkListItemReminders = async () => {
         if (io) {
           io.to(`user-${list.creator._id.toString()}`).emit('reminder', reminder);
         }
+        
+        // Send email to list creator
+        await emailService.sendSharedListNotification(
+          list.creator,
+          { name: 'System' },
+          { _id: list._id, name: list.name },
+          'has items due tomorrow'
+        );
 
         // Send to collaborators
         for (const collaborator of list.collaborators) {
           if (io) {
             io.to(`user-${collaborator._id.toString()}`).emit('reminder', reminder);
           }
+          
+          // Send email to collaborators
+          await emailService.sendSharedListNotification(
+            collaborator,
+            { name: 'System' },
+            { _id: list._id, name: list.name },
+            'has items due tomorrow'
+          );
         }
 
         console.log(`Sent reminders for list "${list.name}" with ${dueItems.length} due items`);
@@ -153,12 +177,12 @@ const checkEventReminders = async () => {
 
     // Find events starting in the next hour
     const upcomingEvents = await CalendarEvent.find({
-      startDate: {
+      start: {
         $gte: oneHourFromNow,
         $lt: twoHoursFromNow
       }
-    }).populate('creator', 'username email')
-      .populate('participants', 'username email');
+    }).populate('creator', 'username email name')
+      .populate('participants', 'username email name');
 
     for (const event of upcomingEvents) {
       const reminder = {
@@ -172,11 +196,19 @@ const checkEventReminders = async () => {
       if (io) {
         io.to(`user-${event.creator._id.toString()}`).emit('reminder', reminder);
       }
+      
+      // Send email to event creator
+      await emailService.sendEventReminder(event.creator, event);
 
       // Send to participants
-      for (const participant of event.participants) {
-        if (io) {
-          io.to(`user-${participant._id.toString()}`).emit('reminder', reminder);
+      if (event.participants && event.participants.length > 0) {
+        for (const participant of event.participants) {
+          if (io) {
+            io.to(`user-${participant._id.toString()}`).emit('reminder', reminder);
+          }
+          
+          // Send email to participants
+          await emailService.sendEventReminder(participant, event);
         }
       }
 
@@ -203,16 +235,16 @@ const checkDailyReminders = async () => {
         $lt: tomorrow
       },
       completed: false
-    }).populate('user', 'username email')
-      .populate('sharedWith', 'username email');
+    }).populate('user', 'username email name')
+      .populate('sharedWith', 'username email name');
 
     const todayEvents = await CalendarEvent.find({
-      startDate: {
+      start: {
         $gte: today,
         $lt: tomorrow
       }
-    }).populate('creator', 'username email')
-      .populate('participants', 'username email');
+    }).populate('creator', 'username email name')
+      .populate('participants', 'username email name');
 
     // Group tasks by user
     const userTasks = {};
@@ -266,6 +298,29 @@ const checkDailyReminders = async () => {
         if (io) {
           io.to(`user-${userId}`).emit('reminder', dailyReminder);
         }
+        
+        // Send email daily summary
+        // Construct a custom daily summary email
+        const taskList = tasks.slice(0, 5).map(t => t.title).join(', ');
+        const eventList = events.slice(0, 5).map(e => e.title).join(', ');
+        
+        await emailService.sendEmail(
+          user.email,
+          `LifeStock Daily Summary: ${tasks.length} Tasks & ${events.length} Events Today`,
+          `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://yourdomain.com/lifestock_logo.svg" alt="LifeStock Logo" style="max-width: 150px;" />
+            </div>
+            <h2 style="color: #4F46E5;">Your Daily Summary</h2>
+            <p>Hello ${user.name},</p>
+            <p>Here's what you have planned for today:</p>
+            ${tasks.length > 0 ? `<h3>Tasks (${tasks.length})</h3><p>${taskList}${tasks.length > 5 ? '...' : ''}</p>` : ''}
+            ${events.length > 0 ? `<h3>Events (${events.length})</h3><p>${eventList}${events.length > 5 ? '...' : ''}</p>` : ''}
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="${process.env.CLIENT_URL}/dashboard" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Dashboard</a>
+            </div>
+          </div>`
+        );
       }
     }
 

@@ -6,36 +6,34 @@ import {
   AlertCircle, 
   Filter, 
   Search,
-  CheckSquare
+  CheckSquare,
+  Plus
 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import { useCollaboration } from '../context/UserCollaborationContext';
+import CreateTask from '../components/CreateTask';
 import api from '../services/api';
 
 const AllTasksPage = () => {
+  const { allTasks, isLoading, refreshAllTasks } = useCollaboration();
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, personal, shared
+  const [showCreateTask, setShowCreateTask] = useState(false);
   const { showError, showSuccess } = useNotification();
 
+  // Update local tasks state when context tasks change
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    setTasks(allTasks);
+  }, [allTasks]);
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/tasks');
-      setTasks(response.data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      showError(error.response?.data?.message || 'Failed to fetch tasks');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (allTasks.length === 0 && !isLoading) {
+      refreshAllTasks();
     }
-  };
+  }, [allTasks, isLoading, refreshAllTasks]);
 
   // Get unique categories and tags from tasks
   const categories = [...new Set(tasks.filter(task => task.category).map(task => task.category))];
@@ -57,12 +55,18 @@ const AllTasksPage = () => {
     return matchesCategory && matchesTag && matchesSearch && matchesType;
   });
 
+  const handleTaskAdded = async () => {
+    await refreshAllTasks();
+    setShowCreateTask(false);
+    showSuccess('Task created successfully!');
+  };
+
   const handleToggleComplete = async (taskId, completed) => {
     try {
-      const response = await api.put(`/tasks/${taskId}`, { completed: !completed });
-      setTasks(tasks.map(task => 
-        task._id === taskId ? response.data : task
-      ));
+      await api.put(`/tasks/${taskId}`, { completed: !completed });
+      // Refresh tasks from context after update
+      await refreshAllTasks();
+      showSuccess(`Task ${!completed ? 'completed' : 'reopened'} successfully`);
     } catch (error) {
       console.error('Error updating task:', error);
       showError(error.response?.data?.message || 'Failed to update task');
@@ -73,7 +77,8 @@ const AllTasksPage = () => {
     // Use toast notification instead of browser confirm
     try {
       await api.delete(`/tasks/${taskId}`);
-      setTasks(tasks.filter(task => task._id !== taskId));
+      // Refresh tasks from context after deletion
+      await refreshAllTasks();
       showSuccess('Task deleted successfully');
     } catch (error) {
       showError(error.response?.data?.message || 'Failed to delete task');
@@ -83,7 +88,7 @@ const AllTasksPage = () => {
   // Remove all edit-related functions since sharing functionality doesn't work
   // Keeping only the delete functionality
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-25 to-primary-50 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
@@ -103,16 +108,45 @@ const AllTasksPage = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-              <CheckSquare className="w-5 h-5 text-primary-600" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                <CheckSquare className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-display font-bold text-neutral-900">All Tasks</h1>
+                <p className="text-neutral-600">
+                  Manage all your tasks in one place. Total: {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
+                </p>
+              </div>
             </div>
-            <h1 className="text-3xl font-display font-bold text-neutral-900">All Tasks</h1>
+            <button
+              onClick={() => setShowCreateTask(!showCreateTask)}
+              className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-medium">New Task</span>
+            </button>
           </div>
-          <p className="text-neutral-600">
-            Manage all your tasks in one place. Total: {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
-          </p>
         </div>
+
+        {/* Create Task Section */}
+        {showCreateTask && (
+          <div className="mb-6">
+            <div className="bg-white rounded-2xl shadow-soft border border-primary-100 p-6 animate-fade-in">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-display font-semibold text-neutral-800">Create New Task</h2>
+                <button
+                  onClick={() => setShowCreateTask(false)}
+                  className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                >
+                  <Plus className="w-5 h-5 transform rotate-45" />
+                </button>
+              </div>
+              <CreateTask onTaskAdded={handleTaskAdded} />
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-soft border border-primary-100 p-6 animate-fade-in">
           {/* Filters */}

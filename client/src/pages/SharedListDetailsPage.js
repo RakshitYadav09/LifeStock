@@ -269,280 +269,301 @@ const SharedListDetailsPage = () => {
   const pendingItems = filterAndSortItems(list.items.filter(item => !item.completed));
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
+    <div className="min-h-screen bg-gradient-to-br from-primary-25 to-primary-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="mb-6">
           <button
             onClick={() => navigate('/shared-lists')}
-            className="text-blue-600 hover:text-blue-700 mb-2 flex items-center space-x-1"
+            className="text-primary-600 hover:text-primary-700 mb-3 flex items-center space-x-2 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span>Back to Lists</span>
+            <span className="font-medium">Back to Lists</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-800">{list.name}</h1>
-          {list.description && (
-            <p className="text-gray-600 mt-2">{list.description}</p>
-          )}
-        </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-500">Created by {list.creator.username}</div>
-          <div className="text-sm text-gray-500">{formatDate(list.createdAt)}</div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">{list.items.length}</div>
-          <div className="text-sm text-gray-500">Total Items</div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <div className="text-2xl font-bold text-green-600">{completedItems.length}</div>
-          <div className="text-sm text-gray-500">Completed</div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-600">{pendingItems.length}</div>
-          <div className="text-sm text-gray-500">Pending</div>
-        </div>
-      </div>
-
-      {/* Collaborators */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Collaborators</h2>
-          <button
-            onClick={() => setShowAddCollaborator(true)}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Add Collaborator
-          </button>
-        </div>
-        
-        <div className="flex flex-wrap gap-3">
-          {/* Creator */}
-          <div className="flex items-center space-x-2 bg-blue-50 rounded-lg px-3 py-2">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-              {list.creator.username.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div className="text-sm font-medium text-gray-900">{list.creator.username}</div>
-              <div className="text-xs text-blue-600">Creator</div>
-            </div>
-          </div>
-
-          {/* Collaborators */}
-          {list.collaborators.map((collaborator) => (
-            <div key={collaborator._id} className="flex items-center space-x-2 bg-gray-50 rounded-lg px-3 py-2">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                {collaborator.username.charAt(0).toUpperCase()}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
+            <div className="flex items-center space-x-4">
+              <div className="bg-primary-500 p-3 rounded-xl shadow-lg">
+                <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-900">{collaborator.username}</div>
-                <div className="text-xs text-gray-500">Collaborator</div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">{list.name}</h1>
+                {list.description && (
+                  <p className="text-neutral-600 mt-1">{list.description}</p>
+                )}
               </div>
-              <button
-                onClick={() => handleRemoveCollaborator(collaborator._id)}
-                className="text-gray-400 hover:text-red-500 transition-colors"
-                title="Remove collaborator"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Add New Item */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Item</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {/* Item Text */}
-          <div className="md:col-span-2">
-            <input
-              type="text"
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              placeholder="Enter item text..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              onKeyPress={(e) => e.key === 'Enter' && handleAddItem()}
-            />
-          </div>
-          
-          {/* Quantity */}
-          <div>
-            <input
-              type="text"
-              value={newItemQuantity}
-              onChange={(e) => setNewItemQuantity(e.target.value)}
-              placeholder="Quantity (optional)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          {/* Due Date */}
-          <div>
-            <input
-              type="date"
-              value={newItemDueDate}
-              onChange={(e) => setNewItemDueDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              title="Due date (optional)"
-            />
-          </div>
-          
-          {/* Assigned To */}
-          <div>
-            <select
-              value={newItemAssignedTo}
-              onChange={(e) => setNewItemAssignedTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Not assigned</option>
-              <option value={list?.creator._id}>{list?.creator.username} (Creator)</option>
-              {list?.collaborators.map(collaborator => (
-                <option key={collaborator._id} value={collaborator._id}>
-                  {collaborator.username}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Priority */}
-          <div>
-            <select
-              value={newItemPriority}
-              onChange={(e) => setNewItemPriority(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="low">Low Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="high">High Priority</option>
-            </select>
-          </div>
-          
-          {/* Notes */}
-          <div className="md:col-span-2">
-            <textarea
-              value={newItemNotes}
-              onChange={(e) => setNewItemNotes(e.target.value)}
-              placeholder="Additional notes (optional)"
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <div className="text-left lg:text-right">
+              <div className="text-sm text-neutral-500">Created by {list.creator.username}</div>
+              <div className="text-sm text-neutral-500">{formatDate(list.createdAt)}</div>
+            </div>
           </div>
         </div>
-        
-        <button
-          onClick={handleAddItem}
-          disabled={!newItemText.trim()}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Add Item
-        </button>
-      </div>
 
-      {/* Filtering and Sorting Controls */}
-      {list.items.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Filter by Priority:</label>
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Priorities</option>
-                <option value="high">High Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="low">Low Priority</option>
-              </select>
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-primary-600">{list.items.length}</div>
+            <div className="text-xs sm:text-sm text-neutral-500">Total Items</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-success-600">{completedItems.length}</div>
+            <div className="text-xs sm:text-sm text-neutral-500">Completed</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-warning-600">{pendingItems.length}</div>
+            <div className="text-xs sm:text-sm text-neutral-500">Pending</div>
+          </div>
+        </div>
+
+        {/* Collaborators */}
+        <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
+            <h2 className="text-lg font-semibold text-neutral-800">Collaborators</h2>
+            <button
+              onClick={() => setShowAddCollaborator(true)}
+              className="bg-primary-500 text-white px-4 py-2 text-sm rounded-xl hover:bg-primary-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Add Collaborator
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            {/* Creator */}
+            <div className="flex items-center space-x-3 bg-primary-50 border border-primary-200 rounded-xl px-3 py-2">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-primary-500 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md">
+                {list.creator.username.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="text-sm font-medium text-neutral-900">{list.creator.username}</div>
+                <div className="text-xs text-primary-600">Creator</div>
+              </div>
+            </div>
+
+            {/* Collaborators */}
+            {list.collaborators.map((collaborator) => (
+              <div key={collaborator._id} className="flex items-center space-x-3 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-success-500 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md">
+                  {collaborator.username.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-neutral-900 truncate">{collaborator.username}</div>
+                  <div className="text-xs text-neutral-500">Collaborator</div>
+                </div>
+                <button
+                  onClick={() => handleRemoveCollaborator(collaborator._id)}
+                  className="text-neutral-400 hover:text-error-500 transition-colors p-1"
+                  title="Remove collaborator"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Add New Item */}
+        <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-4 sm:p-6 mb-6">
+          <h2 className="text-lg font-semibold text-neutral-800 mb-4">Add New Item</h2>
+          <div className="grid grid-cols-1 gap-4 mb-4">
+            {/* Item Text */}
+            <div className="col-span-1">
+              <input
+                type="text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="Enter item text..."
+                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddItem()}
+              />
             </div>
             
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Filter by Assignee:</label>
-              <select
-                value={filterAssignee}
-                onChange={(e) => setFilterAssignee(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Assignees</option>
-                <option value="unassigned">Unassigned</option>
-                <option value={list.creator._id}>{list.creator.username} (Creator)</option>
-                {list.collaborators.map(collaborator => (
-                  <option key={collaborator._id} value={collaborator._id}>
-                    {collaborator.username}
-                  </option>
-                ))}
-              </select>
+            {/* Additional Fields - Mobile Collapsible */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Quantity */}
+              <div>
+                <input
+                  type="text"
+                  value={newItemQuantity}
+                  onChange={(e) => setNewItemQuantity(e.target.value)}
+                  placeholder="Quantity (optional)"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+                />
+              </div>
+              
+              {/* Due Date */}
+              <div>
+                <input
+                  type="date"
+                  value={newItemDueDate}
+                  onChange={(e) => setNewItemDueDate(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+                  title="Due date (optional)"
+                />
+              </div>
+              
+              {/* Assigned To */}
+              <div>
+                <select
+                  value={newItemAssignedTo}
+                  onChange={(e) => setNewItemAssignedTo(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+                >
+                  <option value="">Not assigned</option>
+                  <option value={list?.creator._id}>{list?.creator.username} (Creator)</option>
+                  {list?.collaborators.map(collaborator => (
+                    <option key={collaborator._id} value={collaborator._id}>
+                      {collaborator.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Priority */}
+              <div>
+                <select
+                  value={newItemPriority}
+                  onChange={(e) => setNewItemPriority(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+                >
+                  <option value="low">Low Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="high">High Priority</option>
+                </select>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Sort by:</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="addedAt">Date Added</option>
-                <option value="priority">Priority</option>
-                <option value="dueDate">Due Date</option>
-              </select>
+            {/* Notes - Full Width */}
+            <div>
+              <textarea
+                value={newItemNotes}
+                onChange={(e) => setNewItemNotes(e.target.value)}
+                placeholder="Optional notes"
+                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-none"
+                rows={2}
+              />
             </div>
           </div>
+          
+          <div className="flex justify-end">
+            <button
+              onClick={handleAddItem}
+              disabled={!newItemText.trim()}
+              className="bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Add Item</span>
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Filtering and Sorting Controls */}
+        {list.items.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-4 sm:p-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-neutral-700">Filter by Priority:</label>
+                <select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="px-3 py-2 border border-neutral-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="high">High Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="low">Low Priority</option>
+                </select>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-neutral-700">Filter by Assignee:</label>
+                <select
+                  value={filterAssignee}
+                  onChange={(e) => setFilterAssignee(e.target.value)}
+                  className="px-3 py-2 border border-neutral-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="all">All Assignees</option>
+                  <option value="unassigned">Unassigned</option>
+                  <option value={list.creator._id}>{list.creator.username} (Creator)</option>
+                  {list.collaborators.map(collaborator => (
+                    <option key={collaborator._id} value={collaborator._id}>
+                      {collaborator.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-neutral-700">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 border border-neutral-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="addedAt">Date Added</option>
+                  <option value="priority">Priority</option>
+                  <option value="dueDate">Due Date</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* Items List */}
       <div className="space-y-6">
         {/* Pending Items */}
         {pendingItems.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800">
+          <div className="bg-white rounded-xl shadow-lg border border-neutral-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-neutral-100">
+              <h2 className="text-lg font-semibold text-neutral-800">
                 Pending Items ({pendingItems.length})
               </h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="space-y-3">
                 {pendingItems.map((item) => (
-                  <div key={item._id} className="p-4 bg-gray-50 rounded-lg border">
+                  <div key={item._id} className="p-3 sm:p-4 bg-neutral-50 rounded-xl border border-neutral-200">
                     <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item._id)}
-                        onChange={() => toggleItemSelection(item._id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                      />
-                      <button
-                        onClick={() => handleToggleItem(item._id, true)}
-                        className="w-5 h-5 border-2 border-gray-300 rounded hover:border-green-500 transition-colors mt-1 flex-shrink-0"
-                      />
+                      <div className="flex items-center space-x-2 flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(item._id)}
+                          onChange={() => toggleItemSelection(item._id)}
+                          className="w-4 h-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                        />
+                        <button
+                          onClick={() => handleToggleItem(item._id, true)}
+                          className="w-5 h-5 border-2 border-neutral-300 rounded hover:border-success-500 transition-colors flex-shrink-0"
+                        />
+                      </div>
+                      
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="text-gray-900 font-medium">{item.text}</h4>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <h4 className="text-neutral-900 font-medium truncate">{item.text}</h4>
                               {item.quantity && (
-                                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                <span className="text-xs text-neutral-600 bg-neutral-100 px-2 py-1 rounded-md flex-shrink-0">
                                   Qty: {item.quantity}
                                 </span>
                               )}
-                              <span className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(item.priority)}`}>
+                              <span className={`text-xs px-2 py-1 rounded-full border flex-shrink-0 ${getPriorityColor(item.priority)}`}>
                                 {item.priority}
                               </span>
                             </div>
                             
                             {item.notes && (
-                              <p className="text-sm text-gray-600 mb-2">{item.notes}</p>
+                              <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{item.notes}</p>
                             )}
                             
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                            <div className="flex flex-wrap gap-1 text-xs text-neutral-500">
                               <span>Added by {item.addedBy?.username || 'Unknown'}</span>
                               <span>•</span>
                               <span>{formatDate(item.addedAt)}</span>
@@ -550,7 +571,7 @@ const SharedListDetailsPage = () => {
                               {item.dueDate && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-orange-600 font-medium">
+                                  <span className="text-warning-600 font-medium">
                                     Due: {formatDate(item.dueDate)}
                                   </span>
                                 </>
@@ -559,25 +580,18 @@ const SharedListDetailsPage = () => {
                               {item.assignedTo && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-blue-600">
+                                  <span className="text-primary-600">
                                     Assigned to {item.assignedTo.username}
                                   </span>
-                                </>
-                              )}
-                              
-                              {item.updatedBy && item.updatedAt && (
-                                <>
-                                  <span>•</span>
-                                  <span>Updated by {item.updatedBy.username} on {formatDate(item.updatedAt)}</span>
                                 </>
                               )}
                             </div>
                           </div>
                           
-                          <div className="flex items-center space-x-2 ml-2">
+                          <div className="flex items-center space-x-2 flex-shrink-0 sm:ml-4">
                             <button
                               onClick={() => setEditingItem(item)}
-                              className="text-gray-400 hover:text-blue-500 transition-colors"
+                              className="p-2 text-neutral-400 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-all duration-200"
                               title="Edit item"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -586,7 +600,7 @@ const SharedListDetailsPage = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteItem(item._id)}
-                              className="text-gray-400 hover:text-red-500 transition-colors"
+                              className="p-2 text-neutral-400 hover:text-error-500 hover:bg-error-50 rounded-lg transition-all duration-200"
                               title="Delete item"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -606,45 +620,54 @@ const SharedListDetailsPage = () => {
 
         {/* Completed Items */}
         {completedItems.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800">
+          <div className="bg-white rounded-xl shadow-lg border border-neutral-200">
+            <div className="px-4 sm:px-6 py-4 border-b border-neutral-100">
+              <h2 className="text-lg font-semibold text-neutral-800">
                 Completed Items ({completedItems.length})
               </h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="space-y-3">
                 {completedItems.map((item) => (
-                  <div key={item._id} className="p-4 bg-green-50 rounded-lg border">
+                  <div key={item._id} className="p-3 sm:p-4 bg-success-50 rounded-xl border border-success-200">
                     <div className="flex items-start space-x-3">
-                      <button
-                        onClick={() => handleToggleItem(item._id, false)}
-                        className="w-5 h-5 bg-green-500 rounded flex items-center justify-center hover:bg-green-600 transition-colors mt-1 flex-shrink-0"
-                      >
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center space-x-2 flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(item._id)}
+                          onChange={() => toggleItemSelection(item._id)}
+                          className="w-4 h-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                        />
+                        <button
+                          onClick={() => handleToggleItem(item._id, false)}
+                          className="w-5 h-5 bg-success-500 rounded flex items-center justify-center hover:bg-success-600 transition-colors flex-shrink-0"
+                        >
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                      
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="text-gray-500 line-through font-medium">{item.text}</h4>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <h4 className="text-neutral-500 line-through font-medium truncate">{item.text}</h4>
                               {item.quantity && (
-                                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-1 rounded line-through">
+                                <span className="text-xs text-neutral-400 bg-neutral-100 px-2 py-1 rounded-md flex-shrink-0 line-through">
                                   Qty: {item.quantity}
                                 </span>
                               )}
-                              <span className={`text-xs px-2 py-1 rounded-full border opacity-60 ${getPriorityColor(item.priority)}`}>
+                              <span className={`text-xs px-2 py-1 rounded-full border opacity-60 flex-shrink-0 ${getPriorityColor(item.priority)}`}>
                                 {item.priority}
                               </span>
                             </div>
                             
                             {item.notes && (
-                              <p className="text-sm text-gray-400 mb-2 line-through">{item.notes}</p>
+                              <p className="text-sm text-neutral-400 mb-2 line-clamp-2 line-through">{item.notes}</p>
                             )}
                             
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+                            <div className="flex flex-wrap gap-1 text-xs text-neutral-400">
                               <span>Completed by {item.completedBy?.username || 'Unknown'}</span>
                               <span>•</span>
                               <span>{formatDate(item.completedAt)}</span>
@@ -658,15 +681,17 @@ const SharedListDetailsPage = () => {
                             </div>
                           </div>
                           
-                          <button
-                            onClick={() => handleDeleteItem(item._id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors ml-2"
-                            title="Delete item"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                          <div className="flex items-center space-x-2 flex-shrink-0 sm:ml-4">
+                            <button
+                              onClick={() => handleDeleteItem(item._id)}
+                              className="p-2 text-neutral-400 hover:text-error-500 hover:bg-error-50 rounded-lg transition-all duration-200"
+                              title="Delete item"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -693,52 +718,54 @@ const SharedListDetailsPage = () => {
 
       {/* Edit Item Modal */}
       {editingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Item</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-neutral-200 px-4 sm:px-6 py-4 rounded-t-xl">
+              <h3 className="text-lg font-semibold text-neutral-800">Edit Item</h3>
+            </div>
             
-            <div className="space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               {/* Text */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Item Text</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Item Text</label>
                 <input
                   type="text"
                   value={editingItem.text}
                   onChange={(e) => setEditingItem({...editingItem, text: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               
               {/* Quantity */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Quantity</label>
                 <input
                   type="text"
                   value={editingItem.quantity || ''}
                   onChange={(e) => setEditingItem({...editingItem, quantity: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="Optional"
                 />
               </div>
               
               {/* Due Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Due Date</label>
                 <input
                   type="date"
                   value={editingItem.dueDate ? editingItem.dueDate.split('T')[0] : ''}
                   onChange={(e) => setEditingItem({...editingItem, dueDate: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               
               {/* Assigned To */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Assigned To</label>
                 <select
                   value={editingItem.assignedTo?._id || ''}
                   onChange={(e) => setEditingItem({...editingItem, assignedTo: e.target.value ? {_id: e.target.value} : null})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="">Not assigned</option>
                   <option value={list.creator._id}>{list.creator.username} (Creator)</option>
@@ -752,11 +779,11 @@ const SharedListDetailsPage = () => {
               
               {/* Priority */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Priority</label>
                 <select
                   value={editingItem.priority || 'medium'}
                   onChange={(e) => setEditingItem({...editingItem, priority: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="low">Low Priority</option>
                   <option value="medium">Medium Priority</option>
@@ -766,38 +793,40 @@ const SharedListDetailsPage = () => {
               
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Notes</label>
                 <textarea
                   value={editingItem.notes || ''}
                   onChange={(e) => setEditingItem({...editingItem, notes: e.target.value})}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-none"
                   placeholder="Optional notes"
                 />
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => handleEditItem(editingItem._id, {
-                  text: editingItem.text,
-                  quantity: editingItem.quantity || undefined,
-                  dueDate: editingItem.dueDate || undefined,
-                  assignedTo: editingItem.assignedTo?._id || undefined,
-                  priority: editingItem.priority,
-                  notes: editingItem.notes || undefined
-                })}
-                disabled={!editingItem.text.trim()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => setEditingItem(null)}
-                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="sticky bottom-0 bg-white border-t border-neutral-200 px-4 sm:px-6 py-4 rounded-b-xl">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => handleEditItem(editingItem._id, {
+                    text: editingItem.text,
+                    quantity: editingItem.quantity || undefined,
+                    dueDate: editingItem.dueDate || undefined,
+                    assignedTo: editingItem.assignedTo?._id || undefined,
+                    priority: editingItem.priority,
+                    notes: editingItem.notes || undefined
+                  })}
+                  disabled={!editingItem.text.trim()}
+                  className="flex-1 px-4 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => setEditingItem(null)}
+                  className="flex-1 px-4 py-3 bg-neutral-200 text-neutral-700 rounded-xl hover:bg-neutral-300 transition-all duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -805,45 +834,56 @@ const SharedListDetailsPage = () => {
 
       {/* Add Collaborator Modal */}
       {showAddCollaborator && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Add Collaborator</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+            <div className="px-4 sm:px-6 py-4 border-b border-neutral-200">
+              <h3 className="text-lg font-semibold text-neutral-800">Add Collaborator</h3>
+            </div>
             
-            {getAvailableFriends().length === 0 ? (
-              <p className="text-gray-500 text-center py-4">
-                All your friends are already collaborating on this list!
-              </p>
-            ) : (
-              <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {getAvailableFriends().map((friend) => (
-                  <div
-                    key={friend._id}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                        {friend.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{friend.username}</div>
-                        <div className="text-xs text-gray-500">{friend.email}</div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleAddCollaborator(friend._id)}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Add
-                    </button>
+            <div className="p-4 sm:p-6">
+              {getAvailableFriends().length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
                   </div>
-                ))}
-              </div>
-            )}
+                  <p className="text-neutral-500">
+                    All your friends are already collaborating on this list!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {getAvailableFriends().map((friend) => (
+                    <div
+                      key={friend._id}
+                      className="flex items-center justify-between p-3 border border-neutral-200 rounded-xl hover:bg-neutral-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="w-9 h-9 bg-primary-500 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md flex-shrink-0">
+                          {friend.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-neutral-900 truncate">{friend.username}</div>
+                          <div className="text-xs text-neutral-500 truncate">{friend.email}</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleAddCollaborator(friend._id)}
+                        className="px-3 py-2 bg-primary-500 text-white text-sm font-medium rounded-xl hover:bg-primary-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex-shrink-0 ml-3"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            <div className="flex justify-end">
+            <div className="px-4 sm:px-6 py-4 border-t border-neutral-200">
               <button
                 onClick={() => setShowAddCollaborator(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                className="w-full px-4 py-3 bg-neutral-200 text-neutral-700 rounded-xl hover:bg-neutral-300 transition-all duration-200 font-medium"
               >
                 Close
               </button>
@@ -860,6 +900,7 @@ const SharedListDetailsPage = () => {
         onBulkAssign={handleBulkAssign}
         collaborators={getAllCollaborators()}
       />
+      </div>
     </div>
   );
 };

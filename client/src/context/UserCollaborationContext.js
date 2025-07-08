@@ -5,6 +5,7 @@ import {
   getFriends,
   getPendingRequests,
   getSentRequests,
+  getTasks,
   getSharedTasks,
   getSharedLists,
   getCalendarEvents,
@@ -37,12 +38,44 @@ export const UserCollaborationProvider = ({ children }) => {
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
   const [sharedTasks, setSharedTasks] = useState([]);
   const [sharedLists, setSharedLists] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Reset state when user changes
+  useEffect(() => {
+    if (user && user.id !== currentUserId) {
+      // Reset all data when user changes
+      setFriends([]);
+      setPendingRequests([]);
+      setSentRequests([]);
+      setAllTasks([]);
+      setSharedTasks([]);
+      setSharedLists([]);
+      setCalendarEvents([]);
+      setNotifications([]);
+      setDataLoaded(false);
+      setCurrentUserId(user.id);
+    } else if (!user) {
+      // Clear all data when user logs out
+      setFriends([]);
+      setPendingRequests([]);
+      setSentRequests([]);
+      setAllTasks([]);
+      setSharedTasks([]);
+      setSharedLists([]);
+      setCalendarEvents([]);
+      setNotifications([]);
+      setDataLoaded(false);
+      setCurrentUserId(null);
+    }
+  }, [user, currentUserId]);
 
   // Socket connection effect
   useEffect(() => {
@@ -122,53 +155,68 @@ export const UserCollaborationProvider = ({ children }) => {
 
   // Load initial data
   useEffect(() => {
-    if (user) {
-      loadCollaborationData();
+    const loadData = async () => {
+      if (!user || isLoading || (dataLoaded && currentUserId === user.id)) return; // Prevent duplicate requests
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const [
+          friendsResponse,
+          pendingResponse,
+          sentResponse,
+          allTasksResponse,
+          sharedTasksResponse,
+          sharedListsResponse,
+          eventsResponse,
+          notificationsResponse
+        ] = await Promise.all([
+          getFriends(),
+          getPendingRequests(),
+          getSentRequests(),
+          getTasks(),
+          getSharedTasks(),
+          getSharedLists(),
+          getCalendarEvents(),
+          getNotifications()
+        ]);
+
+        setFriends(friendsResponse.data);
+        setPendingRequests(pendingResponse.data);
+        setSentRequests(sentResponse.data);
+        setAllTasks(allTasksResponse.data);
+        setSharedTasks(sharedTasksResponse.data);
+        setSharedLists(sharedListsResponse.data);
+        setCalendarEvents(eventsResponse.data);
+        setNotifications(notificationsResponse.data.notifications || []);
+        setDataLoaded(true);
+        setCurrentUserId(user.id);
+      } catch (error) {
+        console.error('Error loading collaboration data:', error);
+        if (error.name !== 'AbortError' && error.code !== 'ECONNABORTED') {
+          setError('Failed to load collaboration data');
+          // Reset data loaded flag to attempt reload later
+          setDataLoaded(false);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user && (!dataLoaded || currentUserId !== user.id) && !isLoading) {
+      loadData();
     }
-  }, [user]);
+  }, [user, dataLoaded, isLoading, currentUserId]);
 
   const loadCollaborationData = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const [
-        friendsResponse,
-        pendingResponse,
-        sentResponse,
-        sharedTasksResponse,
-        sharedListsResponse,
-        eventsResponse,
-        notificationsResponse
-      ] = await Promise.all([
-        getFriends(),
-        getPendingRequests(),
-        getSentRequests(),
-        getSharedTasks(),
-        getSharedLists(),
-        getCalendarEvents(),
-        getNotifications()
-      ]);
-
-      setFriends(friendsResponse.data);
-      setPendingRequests(pendingResponse.data);
-      setSentRequests(sentResponse.data);
-      setSharedTasks(sharedTasksResponse.data);
-      setSharedLists(sharedListsResponse.data);
-      setCalendarEvents(eventsResponse.data);
-      setNotifications(notificationsResponse.data.notifications || []);
-    } catch (error) {
-      console.error('Error loading collaboration data:', error);
-      setError('Failed to load collaboration data');
-    } finally {
-      setIsLoading(false);
-    }
+    setDataLoaded(false); // Reset to trigger reload
   };
 
   // Notification management
   const addNotification = (notification) => {
     const newNotification = {
-      id: Date.now(),
+      id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Ensure unique IDs
       timestamp: new Date(),
       read: false,
       ...notification
@@ -333,8 +381,19 @@ export const UserCollaborationProvider = ({ children }) => {
   };
 
   // Refresh functions
+  const refreshAllTasks = async () => {
+    try {
+      if (isLoading) return;
+      const response = await getTasks();
+      setAllTasks(response.data);
+    } catch (error) {
+      console.error('Error refreshing all tasks:', error);
+    }
+  };
+
   const refreshFriends = async () => {
     try {
+      if (isLoading) return;
       const response = await getFriends();
       setFriends(response.data);
     } catch (error) {
@@ -344,6 +403,7 @@ export const UserCollaborationProvider = ({ children }) => {
 
   const refreshSharedTasks = async () => {
     try {
+      if (isLoading) return;
       const response = await getSharedTasks();
       setSharedTasks(response.data);
     } catch (error) {
@@ -353,6 +413,7 @@ export const UserCollaborationProvider = ({ children }) => {
 
   const refreshSharedLists = async () => {
     try {
+      if (isLoading) return;
       const response = await getSharedLists();
       setSharedLists(response.data);
     } catch (error) {
@@ -362,6 +423,7 @@ export const UserCollaborationProvider = ({ children }) => {
 
   const refreshCalendarEvents = async () => {
     try {
+      if (isLoading) return;
       const response = await getCalendarEvents();
       setCalendarEvents(response.data);
     } catch (error) {
@@ -411,7 +473,7 @@ export const UserCollaborationProvider = ({ children }) => {
   };
 
   const getUnreadNotificationsCount = () => {
-    return notifications.filter(notif => !notif.isRead).length;
+    return notifications.filter(notif => !notif.isRead && !notif.read).length;
   };
 
   const contextValue = {
@@ -419,6 +481,7 @@ export const UserCollaborationProvider = ({ children }) => {
     friends,
     pendingRequests,
     sentRequests,
+    allTasks,
     sharedTasks,
     sharedLists,
     calendarEvents,
@@ -441,6 +504,7 @@ export const UserCollaborationProvider = ({ children }) => {
     handleDeleteNotification,
     
     // Refresh functions
+    refreshAllTasks,
     refreshFriends,
     refreshSharedTasks,
     refreshSharedLists,

@@ -11,6 +11,8 @@ const authLimiter = rateLimit({
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Configure trusted proxies - 1 means trust the first hop (Render's proxy)
+  trustProxy: 1
 });
 
 router.post('/register', authLimiter, registerUser);

@@ -5,6 +5,7 @@ import { UserCollaborationProvider } from './context/UserCollaborationContext';
 import { NotificationProvider } from './context/NotificationContext';
 import AuthContext from './context/AuthContext';
 import NavigationBar from './components/NavigationBar';
+import FloatingQuickAddButton from './components/FloatingQuickAddButton';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -46,6 +47,7 @@ const PublicRoute = ({ children }) => {
 };
 
 function AppContent() {
+  const { user } = useContext(AuthContext);
   return (
     <Router>
       <div className="min-h-screen bg-neutral-50">
@@ -101,24 +103,24 @@ function AppContent() {
               } 
             />
             <Route 
-              path="/shared-lists" 
+              path="/shared-lists"
               element={
                 <PrivateRoute>
                   <SharedListsPage />
                 </PrivateRoute>
-              } 
+              }
             />
             <Route 
-              path="/shared-lists/:id" 
+              path="/shared-lists/:id"
               element={
                 <PrivateRoute>
                   <SharedListDetailsPage />
                 </PrivateRoute>
-              } 
+              }
             />
-            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
+        {user && <FloatingQuickAddButton />}
       </div>
     </Router>
   );

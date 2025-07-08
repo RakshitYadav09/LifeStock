@@ -19,7 +19,8 @@ const app = express();
 
 // Trust proxy for production deployment (Render, Heroku, etc.)
 if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', true);
+  // Using '1' instead of 'true' to trust only the first proxy
+  app.set('trust proxy', 1);
 }
 
 const server = http.createServer(app);

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Calendar as CalendarIcon, Plus, X, Save, Trash2, Users, Clock, Lock } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, X, Save, Trash2, Users, Clock, Lock, Grid, List, CalendarDays, Eye } from 'lucide-react';
 import { useCollaboration } from '../context/UserCollaborationContext';
 import { useNotification } from '../context/NotificationContext';
 import AuthContext from '../context/AuthContext';
@@ -19,6 +21,9 @@ const CalendarPage = () => {
   const { user } = useContext(AuthContext);
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [currentView, setCurrentView] = useState('dayGridMonth');
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [viewingEvent, setViewingEvent] = useState(null); // For read-only viewing
   const [eventForm, setEventForm] = useState({
     title: '',
     description: '',
@@ -28,6 +33,38 @@ const CalendarPage = () => {
     participants: []
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // View options with responsive considerations
+  const viewOptions = [
+    { 
+      id: 'dayGridMonth', 
+      label: 'Month', 
+      icon: Grid, 
+      mobile: true,
+      description: 'Monthly overview'
+    },
+    { 
+      id: 'timeGridWeek', 
+      label: 'Week', 
+      icon: CalendarDays, 
+      mobile: false,
+      description: 'Weekly schedule'
+    },
+    { 
+      id: 'timeGridDay', 
+      label: 'Day', 
+      icon: Clock, 
+      mobile: true,
+      description: 'Daily agenda'
+    },
+    { 
+      id: 'listWeek', 
+      label: 'List', 
+      icon: List, 
+      mobile: true,
+      description: 'Event list'
+    }
+  ];
 
   // Check if current user can edit/delete an event
   const canModifyEvent = (event) => {
@@ -98,20 +135,21 @@ const CalendarPage = () => {
     const event = clickInfo.event;
     const originalEvent = event.extendedProps.originalEvent;
     
-    // Check if user can modify this event
-    if (!canModifyEvent(originalEvent)) {
-      showWarning('You can only edit events that you created. This event was created by someone else.');
-      return;
-    }
-    
-    setSelectedEvent(originalEvent);
-    
     const formatForInput = (date) => {
       const d = new Date(date);
       d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
       return d.toISOString().slice(0, 16);
     };
 
+    // Always allow viewing, but check if user can modify
+    if (canModifyEvent(originalEvent)) {
+      setSelectedEvent(originalEvent);
+      setViewingEvent(null);
+    } else {
+      setViewingEvent(originalEvent);
+      setSelectedEvent(null);
+    }
+    
     setEventForm({
       title: event.title,
       description: event.extendedProps.description || '',
@@ -273,56 +311,205 @@ const CalendarPage = () => {
         </div>
 
         {/* Calendar Container */}
-        <div className="bg-white rounded-xl shadow-lg border border-neutral-200 p-4">
-          <div style={{ minHeight: '600px' }}>
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth'
-              }}
-              initialView="dayGridMonth"
-              editable={true}
-              selectable={true}
-              events={calendarEventsFormatted}
-              select={handleDateSelect}
-              eventClick={handleEventClick}
-              height="auto"
-            />
+        <div className="bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden">
+          {/* View Toggle for Mobile */}
+          <div className="p-4 border-b border-neutral-200 md:hidden">
+            <div className="relative">
+              <button
+                onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+                className="w-full flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-200"
+              >
+                <div className="flex items-center space-x-2">
+                  {React.createElement(
+                    viewOptions.find(v => v.id === currentView)?.icon || Grid,
+                    { className: "h-5 w-5 text-neutral-600" }
+                  )}
+                  <span className="font-medium text-neutral-800">
+                    {viewOptions.find(v => v.id === currentView)?.label || 'Month'}
+                  </span>
+                </div>
+                <X className={`h-4 w-4 text-neutral-500 transition-transform ${isViewDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isViewDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-neutral-200 z-10">
+                  {viewOptions.filter(view => view.mobile).map((view) => (
+                    <button
+                      key={view.id}
+                      onClick={() => {
+                        setCurrentView(view.id);
+                        setIsViewDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center space-x-3 p-3 text-left hover:bg-neutral-50 first:rounded-t-xl last:rounded-b-xl ${
+                        currentView === view.id ? 'bg-primary-50 text-primary-700' : 'text-neutral-700'
+                      }`}
+                    >
+                      <view.icon className="h-4 w-4" />
+                      <div>
+                        <div className="font-medium">{view.label}</div>
+                        <div className="text-xs text-neutral-500">{view.description}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* View Toggle for Desktop */}
+          <div className="hidden md:flex items-center justify-between p-4 border-b border-neutral-200">
+            <div className="flex items-center space-x-2 bg-neutral-100 rounded-xl p-1">
+              {viewOptions.map((view) => (
+                <button
+                  key={view.id}
+                  onClick={() => setCurrentView(view.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    currentView === view.id
+                      ? 'bg-white text-primary-700 shadow-sm'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                  }`}
+                >
+                  <view.icon className="h-4 w-4" />
+                  <span>{view.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="text-sm text-neutral-500">
+              {viewOptions.find(v => v.id === currentView)?.description}
+            </div>
+          </div>
+
+          {/* Calendar */}
+          <div className="p-2 sm:p-4">
+            <div style={{ minHeight: '400px' }} className="sm:min-h-[600px]">
+              <FullCalendar
+                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                headerToolbar={{
+                  left: 'prev,next',
+                  center: 'title',
+                  right: 'today'
+                }}
+                initialView={currentView}
+                key={currentView} // Force re-render when view changes
+                editable={true}
+                selectable={true}
+                events={calendarEventsFormatted}
+                select={handleDateSelect}
+                eventClick={handleEventClick}
+                height="auto"
+                aspectRatio={window.innerWidth < 768 ? 0.6 : 1.35}
+                dayMaxEvents={window.innerWidth < 768 ? 2 : 4}
+                moreLinkClick="popover"
+                eventDisplay="block"
+                displayEventTime={currentView !== 'dayGridMonth'}
+                eventTextColor="#ffffff"
+                eventBorderWidth={0}
+                eventClassNames="cursor-pointer fc-event-truncate"
+                // Mobile optimizations
+                slotMinTime="06:00:00"
+                slotMaxTime="22:00:00"
+                expandRows={true}
+                // List view specific settings
+                listDayFormat={{ weekday: 'long', month: 'short', day: 'numeric' }}
+                listDaySideFormat={false}
+                // Better event text handling and full title visibility
+                eventDidMount={(info) => {
+                  // Add tooltip for better mobile experience
+                  const event = info.event;
+                  const tooltip = `${event.title}${event.extendedProps.description ? '\n' + event.extendedProps.description : ''}`;
+                  info.el.setAttribute('title', tooltip);
+                  
+                  // Ensure full event names are visible in list view
+                  if (currentView === 'listWeek') {
+                    const titleEl = info.el.querySelector('.fc-list-event-title');
+                    if (titleEl) {
+                      titleEl.style.whiteSpace = 'normal';
+                      titleEl.style.overflow = 'visible';
+                      titleEl.style.textOverflow = 'clip';
+                      titleEl.style.maxWidth = 'none';
+                    }
+                  }
+                  
+                  // Improve event text visibility in grid views
+                  const eventTitleEl = info.el.querySelector('.fc-event-title');
+                  if (eventTitleEl) {
+                    eventTitleEl.style.fontSize = '0.75rem';
+                    eventTitleEl.style.lineHeight = '1.1';
+                    eventTitleEl.style.fontWeight = '500';
+                    // Allow text wrapping for better visibility on mobile
+                    if (window.innerWidth < 768) {
+                      eventTitleEl.style.whiteSpace = 'normal';
+                      eventTitleEl.style.overflow = 'visible';
+                    }
+                  }
+                  
+                  // Add visual indicator for read-only events
+                  if (!canModifyEvent(event.extendedProps.originalEvent)) {
+                    const eyeIcon = document.createElement('span');
+                    eyeIcon.innerHTML = '👁️';
+                    eyeIcon.className = 'absolute top-0 right-0 text-xs opacity-75 z-10';
+                    eyeIcon.style.fontSize = '10px';
+                    eyeIcon.style.pointerEvents = 'none';
+                    info.el.style.position = 'relative';
+                    info.el.appendChild(eyeIcon);
+                  }
+                }}
+                // Handle window resize for better responsiveness
+                windowResize={() => {
+                  // Recalculate aspect ratio on resize
+                  return {
+                    aspectRatio: window.innerWidth < 768 ? 0.6 : 1.35
+                  };
+                }}
+                // Improve mobile interaction
+                eventStartEditable={true}
+                eventDurationEditable={true}
+                // Better mobile touch handling
+                longPressDelay={300}
+                eventLongPressDelay={300}
+              />
+            </div>
           </div>
         </div>
 
         {/* Event Modal */}
         {showEventModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
-              <div className="bg-primary-500 px-6 py-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-scale-in">
+              <div className={`px-4 sm:px-6 py-3 sm:py-4 ${
+                viewingEvent ? 'bg-neutral-500' : 'bg-primary-500'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">
-                    {selectedEvent ? 'Edit Event' : 'New Event'}
-                  </h2>
+                  <div className="flex items-center space-x-3">
+                    {viewingEvent && (
+                      <Eye className="h-5 w-5 text-white" />
+                    )}
+                    <h2 className="text-lg sm:text-xl font-semibold text-white">
+                      {viewingEvent ? 'View Event' : selectedEvent ? 'Edit Event' : 'New Event'}
+                    </h2>
+                  </div>
                   <button
                     onClick={closeModal}
-                    className="text-white/80 hover:text-white transition-colors"
+                    className="text-white/80 hover:text-white transition-colors p-1"
                   >
-                    <X className="h-6 w-6" />
+                    <X className="h-5 w-5 sm:h-6 sm:w-6" />
                   </button>
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-                <form onSubmit={(e) => { e.preventDefault(); handleSaveEvent(); }} className="space-y-6">
-                  {/* Permission Notice for Edit */}
-                  {selectedEvent && !canModifyEvent(selectedEvent) && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start space-x-3">
-                      <div className="bg-amber-100 p-1 rounded-full mt-0.5">
-                        <Lock className="w-4 h-4 text-amber-600" />
+              <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-80px)] sm:max-h-[calc(90vh-80px)]">
+                <form onSubmit={(e) => { e.preventDefault(); handleSaveEvent(); }} className="space-y-4 sm:space-y-6">
+                  {/* Permission Notice for Read-only */}
+                  {viewingEvent && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start space-x-3">
+                      <div className="bg-blue-100 p-1 rounded-full mt-0.5">
+                        <Eye className="w-4 h-4 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-amber-800 font-medium text-sm">Read-only Event</p>
-                        <p className="text-amber-700 text-sm mt-1">
-                          This event was created by {selectedEvent.creator?.username || 'another user'}. 
+                        <p className="text-blue-800 font-medium text-sm">Event Details</p>
+                        <p className="text-blue-700 text-sm mt-1">
+                          Created by {viewingEvent.creator?.username || 'another user'}. 
                           You can view the details but cannot make changes.
                         </p>
                       </div>
@@ -338,10 +525,13 @@ const CalendarPage = () => {
                       type="text"
                       value={eventForm.title}
                       onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      className={`w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                        viewingEvent ? 'bg-neutral-50' : ''
+                      }`}
                       placeholder="Enter event title"
                       required
-                      disabled={selectedEvent && !canModifyEvent(selectedEvent)}
+                      disabled={!!viewingEvent}
+                      readOnly={!!viewingEvent}
                     />
                   </div>
 
@@ -353,10 +543,13 @@ const CalendarPage = () => {
                     <textarea
                       value={eventForm.description}
                       onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-none"
+                      className={`w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-none ${
+                        viewingEvent ? 'bg-neutral-50' : ''
+                      }`}
                       placeholder="Enter event description"
                       rows={3}
-                      disabled={selectedEvent && !canModifyEvent(selectedEvent)}
+                      disabled={!!viewingEvent}
+                      readOnly={!!viewingEvent}
                     />
                   </div>
 
@@ -368,7 +561,7 @@ const CalendarPage = () => {
                       checked={eventForm.isAllDay}
                       onChange={(e) => setEventForm(prev => ({ ...prev, isAllDay: e.target.checked }))}
                       className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
-                      disabled={selectedEvent && !canModifyEvent(selectedEvent)}
+                      disabled={!!viewingEvent}
                     />
                     <label htmlFor="allDay" className="ml-3 block text-sm font-medium text-neutral-700">
                       All day event
@@ -391,9 +584,12 @@ const CalendarPage = () => {
                         }
                         setEventForm(prev => ({ ...prev, startDate: value }));
                       }}
-                      className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      className={`w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                        viewingEvent ? 'bg-neutral-50' : ''
+                      }`}
                       required
-                      disabled={selectedEvent && !canModifyEvent(selectedEvent)}
+                      disabled={!!viewingEvent}
+                      readOnly={!!viewingEvent}
                     />
                   </div>
 
@@ -413,9 +609,12 @@ const CalendarPage = () => {
                         }
                         setEventForm(prev => ({ ...prev, endDate: value }));
                       }}
-                      className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      className={`w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                        viewingEvent ? 'bg-neutral-50' : ''
+                      }`}
                       required
-                      disabled={selectedEvent && !canModifyEvent(selectedEvent)}
+                      disabled={!!viewingEvent}
+                      readOnly={!!viewingEvent}
                     />
                   </div>
 
@@ -424,9 +623,11 @@ const CalendarPage = () => {
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-3">
                         <Users className="inline h-4 w-4 mr-2" />
-                        Invite Friends ({friends.length} available)
+                        {viewingEvent ? 'Participants' : 'Invite Friends'} ({friends.length} available)
                       </label>
-                      <div className="space-y-2 max-h-32 overflow-y-auto border border-neutral-200 rounded-xl p-3 bg-neutral-50">
+                      <div className={`space-y-2 max-h-32 overflow-y-auto border border-neutral-200 rounded-xl p-3 ${
+                        viewingEvent ? 'bg-neutral-50' : 'bg-neutral-50'
+                      }`}>
                         {friends.map((friend) => (
                           <div key={friend._id} className="flex items-center">
                             <input
@@ -435,7 +636,7 @@ const CalendarPage = () => {
                               checked={eventForm.participants.includes(friend._id)}
                               onChange={() => handleParticipantToggle(friend._id)}
                               className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
-                              disabled={selectedEvent && !canModifyEvent(selectedEvent)}
+                              disabled={!!viewingEvent}
                             />
                             <label htmlFor={`friend-${friend._id}`} className="ml-3 block text-sm text-neutral-700">
                               {friend.username}
@@ -474,9 +675,9 @@ const CalendarPage = () => {
                         onClick={closeModal}
                         className="px-6 py-3 border border-neutral-300 rounded-xl text-neutral-700 hover:bg-neutral-50 transition-all duration-200 font-medium"
                       >
-                        {selectedEvent && !canModifyEvent(selectedEvent) ? 'Close' : 'Cancel'}
+                        Close
                       </button>
-                      {(!selectedEvent || canModifyEvent(selectedEvent)) && (
+                      {((!selectedEvent && !viewingEvent) || (selectedEvent && canModifyEvent(selectedEvent))) && (
                         <button
                           type="submit"
                           disabled={isLoading || !eventForm.title.trim()}

@@ -13,7 +13,6 @@ import {
   X,
   MailOpen,
   UserPlus,
-  Plus,
   User
 } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
@@ -23,7 +22,7 @@ import UserProfile from './UserProfile';
 
 const NavigationBar = () => {
   const { user, logout } = useContext(AuthContext);
-  const { pendingRequests, notifications, getUnreadNotificationsCount } = useCollaboration();
+  const { pendingRequests, notifications, getUnreadNotificationsCount, markNotificationAsRead } = useCollaboration();
   const location = useLocation();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -31,6 +30,59 @@ const NavigationBar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  
+  // Handle notification click to navigate to relevant page
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark as read
+      if (!notification.read && !notification.isRead) {
+        await markNotificationAsRead(notification._id || notification.id);
+      }
+      
+      // Smart routing based on notification content and type
+      const message = (notification.message || notification.title || '').toLowerCase();
+      const type = notification.type || '';
+      
+      // Check for keywords in the message for intelligent routing
+      if (message.includes('friend') || type.includes('friend')) {
+        navigate('/friends');
+      } else if (message.includes('event') || message.includes('calendar') || message.includes('meeting') || type.includes('event') || type.includes('calendar')) {
+        navigate('/calendar');
+      } else if (message.includes('task') || type.includes('task')) {
+        navigate('/shared-tasks');
+      } else if (message.includes('list') || type.includes('list')) {
+        navigate('/shared-lists');
+      } else {
+        // Fallback to type-based routing
+        switch (type) {
+          case 'friend_request':
+          case 'friend_request_accepted':
+          case 'friend_request_rejected':
+            navigate('/friends');
+            break;
+          case 'task_shared':
+          case 'task_updated':
+          case 'task_completed':
+            navigate('/shared-tasks');
+            break;
+          case 'list_shared':
+          case 'list_updated':
+            navigate('/shared-lists');
+            break;
+          case 'calendar_event':
+          case 'event_shared':
+            navigate('/calendar');
+            break;
+          default:
+            navigate('/');
+        }
+      }
+      
+      setShowNotifications(false);
+    } catch (error) {
+      console.error('Error handling notification click:', error);
+    }
+  };
   const userMenuRef = useRef(null);
   const notificationRef = useRef(null);
 
@@ -88,11 +140,11 @@ const NavigationBar = () => {
                   className="w-10 h-10 object-contain"
                 />
               </div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-display font-bold text-neutral-800 group-hover:text-primary-600 transition-colors">
+              <div className="block">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent group-hover:from-primary-700 group-hover:to-primary-800 transition-all duration-300">
                   LifeStock
                 </h1>
-                <p className="text-xs text-neutral-500 -mt-1">Your Life Management Hub</p>
+                <p className="text-xs text-neutral-500 -mt-1 font-medium">Your Life, Organized</p>
               </div>
             </Link>
           </div>
@@ -124,16 +176,8 @@ const NavigationBar = () => {
             ))}
           </div>
 
-          {/* Right side - Quick Add, Notifications & User Menu */}
+          {/* Right side - Notifications & User Menu */}
           <div className="flex items-center space-x-3">
-            {/* Quick Add Button */}
-            <button
-              onClick={() => setShowQuickAdd(true)}
-              className="p-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-medium hover:shadow-large transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              title="Quick Add"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
             {/* Notifications */}
             <div className="relative" ref={notificationRef}>
               <button
@@ -151,53 +195,91 @@ const NavigationBar = () => {
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-large border border-primary-100 overflow-hidden animate-slide-up">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-primary-100 overflow-hidden animate-slide-up z-50 max-h-[80vh] flex flex-col notification-dropdown">
+                  {/* Header */}
                   <div className="p-4 bg-primary-50 border-b border-primary-100">
                     <h3 className="text-sm font-semibold text-primary-700">Notifications</h3>
                   </div>
-                  <div className="max-h-96 overflow-y-auto">
+                  
+                  {/* Notifications List */}
+                  <div className="flex-1 overflow-y-auto max-h-80">
                     {notifications.length === 0 ? (
                       <div className="p-6 text-center text-neutral-500">
                         <MailOpen className="w-8 h-8 mx-auto mb-2 text-neutral-400" />
                         <p className="text-sm">No notifications yet</p>
                       </div>
                     ) : (
-                      notifications.slice(0, 5).map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`p-4 border-b border-neutral-100 hover:bg-primary-25 transition-colors ${
-                            !notification.read ? 'bg-primary-25' : ''
-                          }`}
-                        >
-                          <div className="flex items-start space-x-3">
-                            {notification.type === 'friend_request' ? 
-                              <UserPlus className="w-5 h-5 text-primary-600 mt-0.5" /> : 
-                              <FileText className="w-5 h-5 text-primary-600 mt-0.5" />
-                            }
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-neutral-800 truncate">
-                                {notification.title}
-                              </p>
-                              {notification.message && (
-                                <p className="text-xs text-neutral-600 mt-1 line-clamp-2">
-                                  {notification.message}
+                      <div className="divide-y divide-neutral-100">
+                        {notifications.slice(0, 10).map((notification) => (
+                          <div
+                            key={notification._id || notification.id || `notif-${notification.timestamp}`}
+                            onClick={() => handleNotificationClick(notification)}
+                            className={`p-4 hover:bg-primary-25 transition-colors cursor-pointer notification-item ${
+                              !notification.read && !notification.isRead ? 'bg-primary-25' : ''
+                            }`}
+                          >
+                            <div className="flex items-start space-x-3">
+                              {/* Notification Icon */}
+                              <div className="flex-shrink-0 mt-0.5">
+                                {notification.type === 'friend_request' ? (
+                                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <UserPlus className="w-3 h-3 text-blue-600" />
+                                  </div>
+                                ) : notification.type?.includes('task') ? (
+                                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                    <FileText className="w-3 h-3 text-green-600" />
+                                  </div>
+                                ) : notification.type?.includes('list') ? (
+                                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <FileText className="w-3 h-3 text-purple-600" />
+                                  </div>
+                                ) : notification.type?.includes('calendar') ? (
+                                  <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <Calendar className="w-3 h-3 text-orange-600" />
+                                  </div>
+                                ) : (
+                                  <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <Bell className="w-3 h-3 text-gray-600" />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Notification Content */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-neutral-800 line-clamp-2">
+                                  {notification.title || notification.message}
                                 </p>
-                              )}
-                              <p className="text-xs text-neutral-400 mt-1">
-                                {new Date(notification.createdAt).toLocaleDateString()}
-                              </p>
+                                {notification.message && notification.title && (
+                                  <p className="text-xs text-neutral-600 mt-1 line-clamp-2">
+                                    {notification.message}
+                                  </p>
+                                )}
+                                <div className="flex items-center space-x-2 mt-2">
+                                  <p className="text-xs text-neutral-400">
+                                    {new Date(notification.createdAt || notification.timestamp).toLocaleDateString()}
+                                  </p>
+                                  {!notification.read && !notification.isRead && (
+                                    <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            {!notification.read && (
-                              <div className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-2"></div>
-                            )}
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
-                    {notifications.length > 5 && (
-                      <div className="p-3 text-center">
-                        <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                          View all notifications
+                    
+                    {/* View All Link */}
+                    {notifications.length > 10 && (
+                      <div className="p-3 text-center border-t border-neutral-100">
+                        <button 
+                          onClick={() => {
+                            setShowNotifications(false);
+                            // Navigate to dedicated notifications page if exists
+                          }}
+                          className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                        >
+                          View all {notifications.length} notifications
                         </button>
                       </div>
                     )}
@@ -286,14 +368,14 @@ const NavigationBar = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden pb-4 animate-slide-up">
-            <div className="space-y-2">
+          <div className="md:hidden pb-4 animate-slide-up border-t border-neutral-200 mt-4 pt-4">
+            <div className="space-y-1">
               {navigationItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 mx-2 ${
                     isActive(item.path)
                       ? 'bg-primary-50 text-primary-700'
                       : 'text-neutral-600 hover:text-primary-600 hover:bg-primary-25'
