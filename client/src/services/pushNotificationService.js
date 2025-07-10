@@ -7,7 +7,7 @@ class PushNotificationService {
     this.baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
   }
 
-  // Get authentication token from localStorage
+
   getAuthToken() {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {

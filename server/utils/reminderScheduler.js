@@ -7,7 +7,7 @@ const { sendNotificationToUser, notificationTemplates } = require('./pushNotific
 
 let io = null;
 
-
+// Set Socket.IO instance
 const setSocketIO = (socketInstance) => {
   io = socketInstance;
 };

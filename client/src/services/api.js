@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api',
 });
 
-// Add request interceptor to include auth token
+
 api.interceptors.request.use(
   (config) => {
     const userInfo = localStorage.getItem('userInfo');
