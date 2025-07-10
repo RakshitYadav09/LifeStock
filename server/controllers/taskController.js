@@ -1,7 +1,7 @@
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
-const emailService = require('../utils/emailService');
+const { sendNotificationToUser, notificationTemplates } = require('../utils/pushNotificationService');
 
 // Get all tasks for a user (including shared tasks)
 const getTasks = async (req, res) => {
@@ -67,6 +67,21 @@ const createTask = async (req, res) => {
 
     await task.populate('user', 'username email');
     await task.populate('sharedWith', 'username email');
+
+    // Send push notifications to shared users
+    if (sharedWith && sharedWith.length > 0) {
+      const sharedByUser = task.user.username || task.user.email;
+      
+      for (const sharedUser of task.sharedWith) {
+        try {
+          const payload = notificationTemplates.taskShared(task, sharedByUser);
+          await sendNotificationToUser(sharedUser._id, payload);
+        } catch (notificationError) {
+          console.error('Failed to send task shared notification:', notificationError);
+          // Don't fail the task creation if notification fails
+        }
+      }
+    }
 
     res.status(201).json(task);
   } catch (error) {

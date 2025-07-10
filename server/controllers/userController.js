@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const emailService = require('../utils/emailService');
+const { sendNotificationToUser, notificationTemplates } = require('../utils/pushNotificationService');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -38,17 +38,9 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
-      // Send welcome email
-      try {
-        await emailService.sendWelcomeEmail({
-          email: user.email,
-          name: user.username
-        });
-        console.log(`Welcome email sent to ${user.email}`);
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
-        // Continue with registration even if email fails
-      }
+      // Send welcome notification (will be sent when user subscribes to push notifications)
+      // The welcome notification will be triggered from the frontend after subscription
+      console.log(`User ${user.username} registered successfully`);
 
       res.status(201).json({
         _id: user._id,

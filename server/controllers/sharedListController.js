@@ -2,6 +2,7 @@ const SharedList = require('../models/SharedList');
 const User = require('../models/User');
 const Friendship = require('../models/Friendship');
 const { notificationHelpers } = require('./notificationController');
+const { sendNotificationToUser, notificationTemplates } = require('../utils/pushNotificationService');
 
 // Create shared list
 const createSharedList = async (req, res) => {
@@ -47,9 +48,24 @@ const createSharedList = async (req, res) => {
 
     // Send notifications to collaborators
     if (collaborators && collaborators.length > 0) {
+      const creator = await User.findById(creatorId);
+      
       for (const collaboratorId of collaborators) {
         try {
+          // Send in-app notification
           await notificationHelpers.listShared(creatorId, collaboratorId, sharedList._id, name);
+          
+          // Send push notification
+          const collaborator = await User.findById(collaboratorId).select('email name username');
+          if (collaborator) {
+            try {
+              const payload = notificationTemplates.sharedListInvite(sharedList, creator.username || creator.name);
+              await sendNotificationToUser(collaboratorId, payload);
+              console.log(`Shared list invitation notification sent to ${collaborator.username}`);
+            } catch (notificationError) {
+              console.error('Failed to send shared list invitation notification:', notificationError);
+            }
+          }
         } catch (notifError) {
           console.error('Error sending list shared notification:', notifError);
         }

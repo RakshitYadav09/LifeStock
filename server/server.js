@@ -10,6 +10,7 @@ const friendshipRoutes = require('./routes/friendshipRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const sharedListRoutes = require('./routes/sharedListRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const pushNotificationRoutes = require('./routes/pushNotificationRoutes');
 const { scheduleReminders, setSocketIO } = require('./utils/reminderScheduler');
 
 // Connect to MongoDB
@@ -83,6 +84,7 @@ app.use('/api/friends', friendshipRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/shared-lists', sharedListRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/push', pushNotificationRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

@@ -3,7 +3,7 @@ const Task = require('../models/Task');
 const SharedList = require('../models/SharedList');
 const CalendarEvent = require('../models/CalendarEvent');
 const User = require('../models/User');
-const emailService = require('./emailService');
+const { sendNotificationToUser, notificationTemplates } = require('./pushNotificationService');
 
 let io = null;
 

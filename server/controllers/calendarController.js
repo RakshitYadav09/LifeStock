@@ -2,7 +2,7 @@ const CalendarEvent = require('../models/CalendarEvent');
 const User = require('../models/User');
 const Friendship = require('../models/Friendship');
 const { notificationHelpers } = require('./notificationController');
-const emailService = require('../utils/emailService');
+const { sendNotificationToUser, notificationTemplates } = require('../utils/pushNotificationService');
 
 // Create calendar event
 const createEvent = async (req, res) => {
@@ -61,40 +61,17 @@ const createEvent = async (req, res) => {
           // Send in-app notification
           await notificationHelpers.calendarInvite(creatorId, participantId, event._id, title);
           
-          // Send email notification
+          // Send push notification
           const participant = await User.findById(participantId).select('email name username');
-          if (participant && participant.email) {
-            const formattedStartDate = new Date(event.start).toLocaleString();
-            const formattedEndDate = new Date(event.end).toLocaleString();
-            
-            // Create custom event invitation email
-            const emailContent = `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                  <img src="https://yourdomain.com/lifestock_logo.svg" alt="LifeStock Logo" style="max-width: 150px;" />
-                </div>
-                <h2 style="color: #4F46E5;">Event Invitation</h2>
-                <p>Hello ${participant.name || participant.username},</p>
-                <p>${creator.name || creator.username} has invited you to an event:</p>
-                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                  <h3 style="margin-top: 0;">${event.title}</h3>
-                  <p><strong>When:</strong> ${formattedStartDate} ${event.end ? `to ${formattedEndDate}` : ''}</p>
-                  <p><strong>Description:</strong> ${event.description || 'No description provided'}</p>
-                  <p><strong>All Day Event:</strong> ${event.allDay ? 'Yes' : 'No'}</p>
-                </div>
-                <div style="margin-top: 30px; text-align: center;">
-                  <a href="${process.env.CLIENT_URL}/calendar" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Calendar</a>
-                </div>
-              </div>
-            `;
-            
-            await emailService.sendEmail(
-              participant.email,
-              `Event Invitation: ${event.title}`,
-              emailContent
-            );
-            
-            console.log(`Event invitation email sent to ${participant.email}`);
+          if (participant) {
+            try {
+              const payload = notificationTemplates.eventInvitation(event, creator.username || creator.name);
+              await sendNotificationToUser(participantId, payload);
+              console.log(`Event invitation notification sent to ${participant.username}`);
+            } catch (notificationError) {
+              console.error('Failed to send event invitation notification:', notificationError);
+              // Don't fail the event creation if notification fails
+            }
           }
         } catch (error) {
           console.error('Error sending calendar invite notification:', error);

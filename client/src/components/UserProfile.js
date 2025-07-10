@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { User, Mail, Camera, Save, X, Edit3 } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import PushNotificationManager from './PushNotificationManager';
 import api from '../services/api';
 
 const UserProfile = ({ isOpen, onClose }) => {
@@ -151,6 +152,12 @@ const UserProfile = ({ isOpen, onClose }) => {
               className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               required
             />
+          </div>
+
+          {/* Push Notifications Section */}
+          <div className="border-t border-neutral-200 pt-6">
+            <h3 className="text-lg font-semibold text-neutral-800 mb-4">Notification Settings</h3>
+            <PushNotificationManager />
           </div>
 
           {/* Action Buttons */}
