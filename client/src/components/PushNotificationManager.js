@@ -140,11 +140,11 @@ const PushNotificationManager = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {subscriptionStatus.subscribed ? (
-              <Bell className="w-5 h-5 text-green-600" />
+              <Bell className="w-5 h-5 text-green-600 flex-shrink-0" />
             ) : (
-              <BellOff className="w-5 h-5 text-gray-600" />
+              <BellOff className="w-5 h-5 text-gray-600 flex-shrink-0" />
             )}
-            <div>
+            <div className="min-w-0 flex-1">
               <h3 className={`text-sm font-medium ${
                 subscriptionStatus.subscribed ? 'text-green-800' : 'text-gray-800'
               }`}>
@@ -163,7 +163,7 @@ const PushNotificationManager = () => {
           
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-colors duration-200"
+            className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-colors duration-200 flex-shrink-0"
             title="Notification settings"
           >
             <Settings className="w-4 h-4" />
@@ -191,7 +191,7 @@ const PushNotificationManager = () => {
               <button
                 onClick={handleSubscribe}
                 disabled={isLoading || permission === 'denied'}
-                className="flex items-center space-x-2 w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 <Bell className="w-4 h-4" />
                 <span>{isLoading ? 'Enabling...' : 'Enable Notifications'}</span>
@@ -201,7 +201,7 @@ const PushNotificationManager = () => {
                 <button
                   onClick={handleTestNotification}
                   disabled={isLoading}
-                  className="flex items-center space-x-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                  className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   <Bell className="w-4 h-4" />
                   <span>{isLoading ? 'Sending...' : 'Send Test Notification'}</span>
@@ -210,7 +210,7 @@ const PushNotificationManager = () => {
                 <button
                   onClick={handleUnsubscribe}
                   disabled={isLoading}
-                  className="flex items-center space-x-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                  className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   <BellOff className="w-4 h-4" />
                   <span>{isLoading ? 'Disabling...' : 'Disable Notifications'}</span>
@@ -231,19 +231,19 @@ const PushNotificationManager = () => {
             <h5 className="text-sm font-medium text-gray-900 mb-2">You'll receive notifications for:</h5>
             <ul className="space-y-1 text-sm text-gray-600">
               <li className="flex items-center space-x-2">
-                <Check className="w-3 h-3 text-green-500" />
+                <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
                 <span>Task sharing and reminders</span>
               </li>
               <li className="flex items-center space-x-2">
-                <Check className="w-3 h-3 text-green-500" />
+                <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
                 <span>Event invitations and reminders</span>
               </li>
               <li className="flex items-center space-x-2">
-                <Check className="w-3 h-3 text-green-500" />
+                <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
                 <span>Shared list invitations</span>
               </li>
               <li className="flex items-center space-x-2">
-                <Check className="w-3 h-3 text-green-500" />
+                <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
                 <span>Collaboration updates</span>
               </li>
             </ul>
@@ -258,19 +258,19 @@ const PushNotificationManager = () => {
             <button
               onClick={handleSubscribe}
               disabled={isLoading || permission === 'denied'}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="flex items-center justify-center space-x-2 flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               <Bell className="w-4 h-4" />
-              <span>{isLoading ? 'Enabling...' : 'Enable Notifications'}</span>
+              <span className="truncate">{isLoading ? 'Enabling...' : 'Enable Notifications'}</span>
             </button>
           ) : (
             <button
               onClick={handleTestNotification}
               disabled={isLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="flex items-center justify-center space-x-2 flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               <Bell className="w-4 h-4" />
-              <span>{isLoading ? 'Sending...' : 'Test Notification'}</span>
+              <span className="truncate">{isLoading ? 'Sending...' : 'Test Notification'}</span>
             </button>
           )}
         </div>

@@ -161,7 +161,7 @@ global.io = io;
 
 const PORT = process.env.PORT || 5000;
 
-
+// Initialize reminder scheduler
 scheduleReminders();
 
 server.listen(PORT, () => {

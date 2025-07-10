@@ -21,5 +21,10 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#3B82F6",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "categories": ["productivity", "lifestyle", "utilities"],
+  "description": "Your comprehensive life management hub for tasks, events, and collaboration",
+  "orientation": "portrait-primary",
+  "lang": "en-US",
+  "scope": "/"
 }

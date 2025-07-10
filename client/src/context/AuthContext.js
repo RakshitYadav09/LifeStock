@@ -1,6 +1,7 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import api from '../services/api';
 import { jwtDecode } from 'jwt-decode';
+import pushNotificationService from '../services/pushNotificationService';
 
 const AuthContext = createContext();
 
@@ -111,6 +112,15 @@ export const AuthProvider = ({ children }) => {
         payload: userData
       });
       
+      // Auto-request push notifications for new users
+      setTimeout(async () => {
+        try {
+          await pushNotificationService.autoSubscribeNewUser();
+        } catch (error) {
+          console.log('Push notification setup skipped:', error);
+        }
+      }, 1000); // Small delay to ensure UI is ready
+      
       return userData;
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed';
@@ -138,6 +148,7 @@ export const AuthProvider = ({ children }) => {
       });
       
       const userData = response.data;
+      const isNewUser = response.data.isNewUser;
       
       localStorage.setItem('userInfo', JSON.stringify(userData));
       
@@ -145,6 +156,17 @@ export const AuthProvider = ({ children }) => {
         type: 'LOGIN_SUCCESS',
         payload: userData
       });
+      
+      // Auto-request push notifications for new users
+      if (isNewUser) {
+        setTimeout(async () => {
+          try {
+            await pushNotificationService.autoSubscribeNewUser();
+          } catch (error) {
+            console.log('Push notification setup skipped:', error);
+          }
+        }, 1000); // Small delay to ensure UI is ready
+      }
       
       return userData;
     } catch (error) {

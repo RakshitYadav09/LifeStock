@@ -4,10 +4,16 @@ class PushNotificationService {
     this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
     this.registration = null;
     this.subscription = null;
-    this.baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+    
+    // Determine API base URL based on environment
+    if (process.env.NODE_ENV === 'production') {
+      this.baseURL = process.env.REACT_APP_API_BASE_URL || 'https://lifestock.onrender.com/api';
+    } else {
+      this.baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+    }
   }
 
-
+  // Get authentication token from localStorage
   getAuthToken() {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
@@ -95,7 +101,37 @@ class PushNotificationService {
     }
   }
 
-  // Request notification permission
+  // Request permission and subscribe automatically for new users
+  async autoSubscribeNewUser() {
+    if (!this.isSupported) {
+      console.log('Push notifications not supported');
+      return false;
+    }
+
+    try {
+      // Initialize service worker first
+      await this.initialize();
+      
+      // Check if permission is already granted
+      if (Notification.permission === 'granted') {
+        return await this.subscribe();
+      }
+
+      // Request permission with user-friendly prompt
+      const permission = await this.requestPermission();
+      
+      if (permission === 'granted') {
+        return await this.subscribe();
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error auto-subscribing new user:', error);
+      return false;
+    }
+  }
+
+  // Enhanced permission request with better UX
   async requestPermission() {
     if (!this.isSupported) {
       return 'not-supported';
@@ -109,8 +145,69 @@ class PushNotificationService {
       return 'denied';
     }
 
+    // Show a custom prompt before requesting permission
+    const shouldRequest = await this.showPermissionPrompt();
+    
+    if (!shouldRequest) {
+      return 'denied';
+    }
+
     const permission = await Notification.requestPermission();
     return permission;
+  }
+
+  // Show custom permission prompt
+  async showPermissionPrompt() {
+    return new Promise((resolve) => {
+      // Create a custom modal for permission request
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+          <div class="flex items-center space-x-3 mb-4">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 01-7.5-7.5H7.5A7.5 7.5 0 0115 12v5z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Enable Notifications</h3>
+          </div>
+          <p class="text-gray-600 mb-6">
+            Stay updated with task reminders, event notifications, and collaboration updates. 
+            This works great on mobile devices too!
+          </p>
+          <div class="flex space-x-3">
+            <button id="allow-notifications" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Allow Notifications
+            </button>
+            <button id="deny-notifications" class="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      // Add event listeners
+      modal.querySelector('#allow-notifications').onclick = () => {
+        document.body.removeChild(modal);
+        resolve(true);
+      };
+
+      modal.querySelector('#deny-notifications').onclick = () => {
+        document.body.removeChild(modal);
+        resolve(false);
+      };
+
+      // Close on background click
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+          resolve(false);
+        }
+      };
+    });
   }
 
   // Get VAPID public key from server

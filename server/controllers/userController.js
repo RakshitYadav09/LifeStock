@@ -9,6 +9,7 @@ const generateToken = (id) => {
   });
 };
 
+// Register User
 const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;

@@ -5,14 +5,18 @@ require('dotenv').config();
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && 
     process.env.VAPID_PUBLIC_KEY !== 'your_vapid_public_key_here' &&
     process.env.VAPID_PRIVATE_KEY !== 'your_vapid_private_key_here') {
+  
+  // Use proper contact email based on environment
+  const contactEmail = process.env.CONTACT_EMAIL || 'support@lifestock.app';
+  
   webPush.setVapidDetails(
-    'mailto:' + (process.env.CONTACT_EMAIL || 'admin@lifestock.com'),
+    'mailto:' + contactEmail,
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );
 } else {
   console.log('⚠️  VAPID keys not configured. Push notifications will not work.');
-  console.log('   Visit http://localhost:5000/api/push/generate-vapid-keys to generate keys.');
+  console.log('   Visit /api/push/generate-vapid-keys to generate keys.');
 }
 
 // Generate VAPID keys (run once to get keys)
@@ -50,7 +54,7 @@ const sendPushNotification = async (subscription, payload) => {
 // Notification templates
 const notificationTemplates = {
   taskShared: (taskData, sharedByUser) => ({
-    title: '🤝 Task Shared',
+    title: '🤝 Task Shared - LifeStock',
     body: `${sharedByUser} shared "${taskData.title}" with you`,
     icon: '/icons/task-icon.png',
     badge: '/icons/badge-icon.png',
@@ -76,7 +80,7 @@ const notificationTemplates = {
   }),
 
   taskReminder: (taskData) => ({
-    title: '⏰ Task Reminder',
+    title: '⏰ Task Reminder - LifeStock',
     body: `Don't forget: "${taskData.title}" is due ${taskData.dueDate ? new Date(taskData.dueDate).toLocaleDateString() : 'soon'}`,
     icon: '/icons/reminder-icon.png',
     badge: '/icons/badge-icon.png',
@@ -102,7 +106,7 @@ const notificationTemplates = {
   }),
 
   eventInvitation: (eventData, invitedByUser) => ({
-    title: '📅 Event Invitation',
+    title: '📅 Event Invitation - LifeStock',
     body: `${invitedByUser} invited you to "${eventData.title}" on ${new Date(eventData.startDate).toLocaleDateString()}`,
     icon: '/icons/event-icon.png',
     badge: '/icons/badge-icon.png',
@@ -128,7 +132,7 @@ const notificationTemplates = {
   }),
 
   eventReminder: (eventData) => ({
-    title: '⏰ Event Reminder',
+    title: '⏰ Event Reminder - LifeStock',
     body: `"${eventData.title}" starts ${new Date(eventData.startDate).toLocaleTimeString()} today`,
     icon: '/icons/event-icon.png',
     badge: '/icons/badge-icon.png',
@@ -154,7 +158,7 @@ const notificationTemplates = {
   }),
 
   sharedListInvite: (listData, invitedByUser) => ({
-    title: '📝 Shared List Invitation',
+    title: '📝 Shared List Invitation - LifeStock',
     body: `${invitedByUser} invited you to collaborate on "${listData.name || listData.title}"`,
     icon: '/icons/list-icon.png',
     badge: '/icons/badge-icon.png',

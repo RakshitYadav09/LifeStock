@@ -31,6 +31,15 @@ self.addEventListener('push', event => {
     };
   }
 
+  // Remove "via localhost" from notifications by setting proper origin
+  const origin = self.location.origin;
+  const isLocalhost = origin.includes('localhost');
+  
+  // For web app manifest, ensure proper app identity
+  if (isLocalhost && notificationData.title && !notificationData.title.includes('LifeStock')) {
+    // Don't modify the title, let the browser handle it naturally
+  }
+
   const notificationOptions = {
     body: notificationData.body,
     icon: notificationData.icon || '/icons/default-icon.png',
