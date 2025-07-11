@@ -37,6 +37,10 @@ const calendarEventSchema = new mongoose.Schema({
   }],
   acceptedAt: {
     type: Date
+  },
+  reminderSent: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

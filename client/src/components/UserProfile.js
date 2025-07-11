@@ -16,6 +16,18 @@ const UserProfile = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
+  // Reset form data when user changes or modal opens
+  React.useEffect(() => {
+    if (isOpen && user) {
+      setFormData({
+        username: user.username || '',
+        email: user.email || '',
+        profilePicture: user.profilePicture || ''
+      });
+      setPreviewImage(null);
+    }
+  }, [isOpen, user]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -27,6 +39,18 @@ const UserProfile = ({ isOpen, onClose }) => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showError('File size must be less than 5MB');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showError('Please select an image file');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = () => {
         setPreviewImage(reader.result);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, BellOff, Check, X, Settings } from 'lucide-react';
+import { Bell, BellOff, Check, Settings } from 'lucide-react';
 import pushNotificationService from '../services/pushNotificationService';
 
 const PushNotificationManager = () => {
@@ -32,7 +32,9 @@ const PushNotificationManager = () => {
     }
   };
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsLoading(true);
     try {
       const success = await pushNotificationService.subscribe();
@@ -56,7 +58,9 @@ const PushNotificationManager = () => {
     }
   };
 
-  const handleUnsubscribe = async () => {
+  const handleUnsubscribe = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!window.confirm('Are you sure you want to unsubscribe from notifications?')) {
       return;
     }
@@ -78,7 +82,9 @@ const PushNotificationManager = () => {
     }
   };
 
-  const handleTestNotification = async () => {
+  const handleTestNotification = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsLoading(true);
     try {
       const success = await pushNotificationService.sendTestNotification();

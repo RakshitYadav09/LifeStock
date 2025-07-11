@@ -14,12 +14,17 @@ const setSocketIO = (socketInstance) => {
 
 // Schedule reminder checking
 const scheduleReminders = () => {
-  // Check for reminders every hour
+  // Check for reminders every 5 minutes for precise event reminders
+  cron.schedule('*/5 * * * *', async () => {
+    console.log('Checking for event reminders...');
+    await checkEventReminders();
+  });
+
+  // Check for task reminders every hour
   cron.schedule('0 * * * *', async () => {
-    console.log('Checking for reminders...');
+    console.log('Checking for task reminders...');
     await checkTaskReminders();
     await checkListItemReminders();
-    await checkEventReminders();
   });
 
   // Also check every day at 9 AM for daily reminders
@@ -169,50 +174,67 @@ const checkListItemReminders = async () => {
 // Check for calendar event reminders
 const checkEventReminders = async () => {
   try {
-    const oneHourFromNow = new Date();
-    oneHourFromNow.setHours(oneHourFromNow.getHours() + 1);
+    const now = new Date();
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
+    const tenMinutesFromNow = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
 
-    const twoHoursFromNow = new Date();
-    twoHoursFromNow.setHours(twoHoursFromNow.getHours() + 2);
-
-    // Find events starting in the next hour
+    // Find events starting in the next 5-10 minutes (to avoid duplicate reminders)
     const upcomingEvents = await CalendarEvent.find({
       start: {
-        $gte: oneHourFromNow,
-        $lt: twoHoursFromNow
-      }
+        $gte: fiveMinutesFromNow,
+        $lt: tenMinutesFromNow
+      },
+      reminderSent: { $ne: true } // Only send reminder once
     }).populate('creator', 'username email name')
       .populate('participants', 'username email name');
 
     for (const event of upcomingEvents) {
       const reminder = {
         type: 'event_reminder',
-        message: `Event "${event.title}" starts in 1 hour!`,
+        message: `Event "${event.title}" starts in 5 minutes!`,
         eventId: event._id,
-        startDate: event.startDate
+        startDate: event.start
       };
 
-      // Send to event creator
-      if (io) {
-        io.to(`user-${event.creator._id.toString()}`).emit('reminder', reminder);
+      // Send push notification to event creator
+      if (event.creator && event.creator._id) {
+        try {
+          const payload = notificationTemplates.eventReminder(event);
+          await sendNotificationToUser(event.creator._id, payload);
+          console.log(`Event reminder sent to creator: ${event.creator.username}`);
+        } catch (error) {
+          console.error('Error sending event reminder to creator:', error);
+        }
       }
-      
-      // Send email to event creator
-      await emailService.sendEventReminder(event.creator, event);
 
       // Send to participants
       if (event.participants && event.participants.length > 0) {
         for (const participant of event.participants) {
-          if (io) {
-            io.to(`user-${participant._id.toString()}`).emit('reminder', reminder);
+          try {
+            const payload = notificationTemplates.eventReminder(event);
+            await sendNotificationToUser(participant._id, payload);
+            console.log(`Event reminder sent to participant: ${participant.username}`);
+          } catch (error) {
+            console.error('Error sending event reminder to participant:', error);
           }
-          
-          // Send email to participants
-          await emailService.sendEventReminder(participant, event);
         }
       }
 
-      console.log(`Sent reminders for event: ${event.title}`);
+      // Send real-time notification via Socket.IO
+      if (io) {
+        io.to(`user-${event.creator._id.toString()}`).emit('reminder', reminder);
+        
+        if (event.participants && event.participants.length > 0) {
+          for (const participant of event.participants) {
+            io.to(`user-${participant._id.toString()}`).emit('reminder', reminder);
+          }
+        }
+      }
+
+      // Mark reminder as sent to avoid duplicates
+      await CalendarEvent.findByIdAndUpdate(event._id, { reminderSent: true });
+
+      console.log(`Sent 5-minute reminders for event: ${event.title}`);
     }
   } catch (error) {
     console.error('Error checking event reminders:', error);

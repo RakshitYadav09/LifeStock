@@ -119,6 +119,7 @@ const googleLogin = async (req, res) => {
 
     // Check if user exists
     let user = await User.findOne({ email: googleEmail });
+    let isNewUser = false;
 
     if (user) {
       // Update user with Google info if not already set
@@ -129,6 +130,7 @@ const googleLogin = async (req, res) => {
       }
     } else {
       // Create new user
+      isNewUser = true;
       user = await User.create({
         username: googleName || email.split('@')[0],
         email: googleEmail,
@@ -147,15 +149,73 @@ const googleLogin = async (req, res) => {
       username: user.username,
       email: user.email,
       profilePicture: user.profilePicture,
-      token: jwtToken
+      token: jwtToken,
+      isNewUser: isNewUser
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// Update user profile
+const updateUserProfile = async (req, res) => {
+  try {
+    const { username, email, profilePicture } = req.body;
+    const userId = req.user.id;
+
+    // Validate input
+    if (!username || !email) {
+      return res.status(400).json({ message: 'Username and email are required' });
+    }
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if email is already taken by another user
+    if (email !== user.email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
+
+    // Check if username is already taken by another user
+    if (username !== user.username) {
+      const usernameExists = await User.findOne({ username, _id: { $ne: userId } });
+      if (usernameExists) {
+        return res.status(400).json({ message: 'Username already taken' });
+      }
+    }
+
+    // Update user profile
+    user.username = username;
+    user.email = email;
+    if (profilePicture) {
+      user.profilePicture = profilePicture;
+    }
+
+    await user.save();
+
+    // Return updated user data
+    res.json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      profilePicture: user.profilePicture,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Server error while updating profile' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
-  googleLogin
+  googleLogin,
+  updateUserProfile
 };

@@ -502,6 +502,7 @@ export const UserCollaborationProvider = ({ children }) => {
     handleMarkNotificationAsRead,
     handleMarkAllNotificationsAsRead,
     handleDeleteNotification,
+    markNotificationAsRead,
     
     // Refresh functions
     refreshAllTasks,

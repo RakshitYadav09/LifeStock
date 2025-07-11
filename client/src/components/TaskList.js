@@ -28,7 +28,7 @@ const TaskList = ({ refreshTrigger }) => {
 
   useEffect(() => {
     fetchTasks();
-  }, [refreshTrigger]);
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchTasks = async () => {
     try {
@@ -223,6 +223,11 @@ const TaskList = ({ refreshTrigger }) => {
                   {/* Metadata */}
                   <div className="flex items-center space-x-4 text-xs text-neutral-500">
                     <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
+                    {task.user && (
+                      <span className="flex items-center space-x-1">
+                        <span>By: {task.user.username || task.user.email}</span>
+                      </span>
+                    )}
                     {task.dueDate && (
                       <span className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3" />

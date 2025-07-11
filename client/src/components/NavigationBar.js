@@ -22,7 +22,7 @@ import UserProfile from './UserProfile';
 
 const NavigationBar = () => {
   const { user, logout } = useContext(AuthContext);
-  const { pendingRequests, notifications, getUnreadNotificationsCount, markNotificationAsRead } = useCollaboration();
+  const { pendingRequests, notifications, getUnreadNotificationsCount, handleMarkNotificationAsRead } = useCollaboration();
   const location = useLocation();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -36,7 +36,7 @@ const NavigationBar = () => {
     try {
       // Mark as read
       if (!notification.read && !notification.isRead) {
-        await markNotificationAsRead(notification._id || notification.id);
+        await handleMarkNotificationAsRead(notification._id || notification.id);
       }
       
       // Smart routing based on notification content and type
@@ -294,8 +294,16 @@ const NavigationBar = () => {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center space-x-2 p-2 rounded-xl hover:bg-primary-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white text-sm font-semibold">
-                  {user.username.charAt(0).toUpperCase()}
+                <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
+                  {user.profilePicture ? (
+                    <img 
+                      src={user.profilePicture} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    user.username.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <span className="hidden sm:block text-sm font-medium text-neutral-700">
                   {user.username}
